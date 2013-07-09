@@ -1,9 +1,13 @@
 {
-  "name": "neuron",
+  "name": "piston",
   "dependencies": {
+    "component/inherit": "*",
     "component/color": "*"
   },
   "scripts": [
     "index.js"
+  ],
+  "local": [
+    "neuron"
   ]
 }

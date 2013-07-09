@@ -1,22 +1,26 @@
+var Piston = require('piston');
+
 module.exports = Engine;
 
-function Engine(router, duration, amount){
+function Engine(router, x, y, width, height){
   
   this._pistons = [];
-  this._amount = amount || 8;
+  this._amount = 8;
   this._pigment = '#000';
   this._router = router;
 
-  this._ox = 0;
-  this._oy = 0;
+  this._ox = x;
+  this._oy = y;
 
-  this.x = 0;
-  this.y = 0;
-  this.w = 0;
-  this.h = 0;
+  this.w = width;
+  this.h = height;
+  this.x = x- (this.w / 2);
+  this.y = y - (this.h / 2);
+
   this.gutter = 0;
-  this.duration = duration;
+  this.duration = 0.15;
   this.delay = 0;
+  this.initialize();
 }
 
 Engine.prototype.isPlaying = function() {
