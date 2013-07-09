@@ -1,0 +1,12 @@
+{
+  "name": "sketch",
+  "repo": "mnmly/sketch.js",
+  "description": "sketch.js is a tiny (~5k) boilerplate for creating JavaScript based creative coding experiments.",
+  "version": "0.0.1",
+  "keywords": [],
+  "scripts": [
+    "js/sketch.js"
+  ],
+  "main": "js/sketch.js",
+  "development": {}
+}

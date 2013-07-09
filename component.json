@@ -1,0 +1,9 @@
+{
+  "name": "neuronal-synchrony",
+  "paths": [
+    "Perform"
+  ],
+  "local": [
+    "perform"
+  ]
+}

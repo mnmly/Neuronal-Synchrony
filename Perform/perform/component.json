@@ -1,0 +1,13 @@
+{
+  "name": "perform",
+  "dependencies": {
+    "mnmly/sketch.js": "*"
+  },
+  "scripts": [
+    "index.js"
+  ],
+  "local": [
+    "router",
+    "engine"
+  ]
+}
