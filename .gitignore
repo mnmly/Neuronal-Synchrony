@@ -5,3 +5,5 @@ renders/*
 actions/*
 data/*
 components
+build
+node_modules
