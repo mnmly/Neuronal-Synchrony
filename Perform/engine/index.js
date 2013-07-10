@@ -1,3 +1,5 @@
+var Piston = require('piston');
+
 module.exports = Engine;
 
 function Engine(router, duration, amount){

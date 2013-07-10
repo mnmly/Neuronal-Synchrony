@@ -39,3 +39,10 @@ Neuron.prototype.getDelay = function() {
 Neuron.prototype.getEasing = function() {
   return this.easing;
 };
+
+Neuron.prototype.getStageSize = function() {
+  return {
+      width: 1000
+    , height: 1000
+  }
+};
