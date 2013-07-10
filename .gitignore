@@ -3,4 +3,5 @@
 *.scssc
 renders/*
 actions/*
-data/*components
+data/*
+components
