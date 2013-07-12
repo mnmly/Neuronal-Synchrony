@@ -1,6 +1,7 @@
-var Color = require('color')
-  , statics = require('./statics')
-  , ease = require('utils').ease
+var Color = require( 'color' ).RGBA
+  , inherit = require( 'inherit' )
+  , statics = require( './statics' )
+  , ease = require( 'utils' ).ease
 
 module.exports = Palette;
 
@@ -13,7 +14,7 @@ function Palette(){
   this.destination = this._colors[0]
 
   for (var i = 0; i < this._amount; i++) {
-    this.current[i] = new Color.RGBA(0, 0, 0, 1);
+    this.current[i] = new Color(0, 0, 0, 1);
   }
   
   this._easing = 0.125;
@@ -24,12 +25,12 @@ function Palette(){
 
 }
 
-for (var key in statics) Palette[key] = statics[key];
-
 Palette.Color = PaletteColor;
+inherit( PaletteColor, Color );
 
-Palette.prototype.getColor = function(type) {
-  
+
+Palette.prototype.getColor = function( type ) {
+  return this.current[type];
 };
 
 
@@ -43,7 +44,6 @@ Palette.prototype.update = function( ) {
     this._assign();
   } else {
     this._state = ease( this._state, this._dest, this._easing);
-
     for ( var i = 0; i < this._amount; i += 1 ) {
 
       var s = this.source[i]
@@ -137,11 +137,20 @@ Palette.prototype._colors = [
 ];
 
 
-function PaletteColor( r, g, b ) {
+for (var key in statics){
+  Palette[key] = statics[key];
+}
+
+function PaletteColor( r, g, b, a ) {
   if (1 === arguments.length) {
-    Color.RGBA.apply(this, [r, r, r]);
+    Color.apply(this, [r, r, r, 1]);
+  } else if ( 3 === arguments.length ){
+    Color.apply(this, [r, g, b, 1]);
   } else {
-    Color.RGBA.apply(this, arguments);
+    Color.apply(this, arguments);
   }
 }
+
+
+
 

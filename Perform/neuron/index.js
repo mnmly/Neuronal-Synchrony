@@ -11,7 +11,7 @@ function Neuron( app ){
   this.playing = false;
 }
 
-Neuron.prototype.setColor = function(color) {
+Neuron.prototype.setColor = function(color ) {
   this.pigment = color;
 };
 

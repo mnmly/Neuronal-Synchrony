@@ -41,12 +41,13 @@ Piston.prototype.initialize = function(x, y, w, h) {
   this.y = this._y;
 };
 
-Piston.prototype.render = function(ctx) {
+Piston.prototype.render = function() {
+
   if (!this.playing) return;
 
   // ctx.noStroke();
-  ctx.fillStyle = this.pigment.toString();
-  ctx.fillRect(this.x, this.y, this.w, this.h);
+  this._app.fillStyle = this.pigment.toString();
+  this._app.fillRect(this.x, this.y, this.w, this.h);
 
 };
 

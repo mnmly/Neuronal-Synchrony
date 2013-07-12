@@ -113,7 +113,6 @@ Suspension.prototype.initialize = function( ) {
       , r = random( this._radius / 2, this._radius )
       , x = a * cos( t ) + this._origin.x
       , y = a * sin( t ) + this._origin.y;
-
     vert.destination.x = x;
     vert.destination.y = y;
     vert.radius = r;
@@ -145,7 +144,7 @@ Suspension.prototype.animate_in = function() {
 
 
 Suspension.prototype.animate_end = function() {
-
+  console.log( 'animate end' );
   playing = false;
 
   for ( var i = 0; i < this._amount; i += 1 ) {
@@ -156,16 +155,19 @@ Suspension.prototype.animate_end = function() {
 
 
 Suspension.prototype.render = function() {
-
   if ( !this.playing ) return;
   
   var context = this._app;
   // ctx.noStroke();
-  ctx.fillStyle = this.pigment.toString();
+  this._app.fillStyle = this.pigment.toString();
+  this._app.beginPath();
   for ( var i = 0; i < this._amount; i += 1 ) {
     var v = this._verts[i];
-    context.ellipse( v.x, v.y, v.radius, v.radius );
+    // ellipse( v.x, v.y, v.radius, v.radius );
+    this._app.arc( v.x, v.y, v.radius, 0, TWO_PI, true);
   }
+  this._app.closePath();
+  this._app.fill();
 };
 
 // Vertex

@@ -1,4 +1,4 @@
-exports = {
+module.exports = {
     MEGURO: 0
   , MIRO: 1
   , KANDINSKY: 2
