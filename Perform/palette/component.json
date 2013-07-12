@@ -1,0 +1,13 @@
+{
+  "name": "palette",
+  "scripts": [
+    "index.js",
+    "statics.js"
+  ],
+  "dependencies": {
+    "component/color": "*"
+  },
+  "local": [
+    "utils"
+  ]
+}

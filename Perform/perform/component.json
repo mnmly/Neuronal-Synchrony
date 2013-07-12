@@ -7,6 +7,12 @@
     "index.js"
   ],
   "local": [
+    "record",
+    "moon",
+    "prism",
+    "clay",
+    "suspension",
+    "palette",
     "router",
     "engine"
   ]

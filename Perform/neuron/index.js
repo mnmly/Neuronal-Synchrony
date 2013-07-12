@@ -2,7 +2,8 @@ var Color = require('color');
 
 module.exports = Neuron;
 
-function Neuron(){
+function Neuron( app ){
+  this._app = app;
   this.pigment = Color.RGBA(0, 0, 0, 1);
   this.duration = 0.15;
   this.delay = 0;
@@ -42,10 +43,9 @@ Neuron.prototype.getEasing = function() {
   return this.easing;
 };
 
-Neuron.prototype.getCanvasWidth = function() {
-  return 1000;
-};
-
-Neuron.prototype.getCanvasHeight = function() {
-  return 1000;
+Neuron.prototype.getStageSize = function() {
+  return {
+      width: 1000
+    , height: 1000
+  }
 };

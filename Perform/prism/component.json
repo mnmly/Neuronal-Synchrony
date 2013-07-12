@@ -1,0 +1,14 @@
+{
+  "name": "prism",
+  "dependencies": {
+    "component/inherit": "*",
+    "component/vector": "*"
+  },
+  "scripts": [
+    "index.js"
+  ],
+  "local": [
+    "neuron"
+  ]
+  
+}

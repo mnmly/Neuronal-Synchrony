@@ -1,33 +1,40 @@
 var inherit = require('inherit')
-  , Color = require('color')
   , Neuron = require('neuron');
 
 module.exports = Piston;
 
-function Piston(duration){
+function Piston( app, duration ){
+
   Neuron.apply(this, arguments);
   this.duration = duration;
   this.initialize();
+
 }
 
-inherit(Piston, Neuron);
+inherit( Piston, Neuron );
 
 Piston.prototype.initialize = function(x, y, w, h) {
 
   if (this.playing) return;
+  
+  var size = this.getStageSize();
 
   if (4 === arguments.length) {
+
     this._w = w;
     this._h = h;
     this._x = x;
     this._y = y;
-  } else {
-    this._w = this.getCanvasWidth() / 2;
-    this._h = this.getCanvasHeight() / 6;
-    this._x = (this.getCanvasWidth() - this._w) / 2;
-    this._y = (this.getCanvasHeight() - this._h) /2;
-  }
 
+  } else {
+
+    this._w = size.width / 2;
+    this._h = size.height / 6;
+    this._x = (size.width - this._w) / 2;
+    this._y = (size.height - this._h) /2;
+
+  }
+  
   this.w = 0;
   this.h = this._h;
   this.x = this._x;
