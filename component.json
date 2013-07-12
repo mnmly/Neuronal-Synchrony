@@ -7,6 +7,7 @@
     "perform"
   ],
   "dependencies": {
-    "component/vector": "*"
+    "component/vector": "*",
+    "component/tween": "*"
   }
 }

@@ -1,6 +1,7 @@
 {
   "name": "suspension",
   "dependencies": {
+    "component/tween": "*",
     "component/inherit": "*",
     "component/vector": "*"
   },

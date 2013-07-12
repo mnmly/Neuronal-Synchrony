@@ -8,6 +8,7 @@ function Engine(router, x, y, width, height){
   this._amount = 8;
   this._pigment = '#000';
   this._router = router;
+  this._app = router._app;
 
   this._ox = x;
   this._oy = y;
@@ -66,7 +67,7 @@ Engine.prototype.initialize = function() {
 
   for (var i = 0; i < this._amount; i += 1) {
     
-    var piston = this._pistons[i] = new Piston(this.duration)
+    var piston = this._pistons[i] = new Piston(this._app, this.duration)
       , offsetY = (i / this._amount) * this.h + this.y + this.gutter / 2;
 
     piston.initialize(this.x, offsetY, this.w, offsetH);

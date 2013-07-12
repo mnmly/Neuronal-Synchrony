@@ -1,4 +1,5 @@
 var inherit = require( 'inherit' )
+  , Tween = require( 'tween' )
   , Vector = require( 'vector' )
   , Neuron = require( 'neuron' );
 
@@ -16,6 +17,7 @@ function Suspension( app, duration ) {
   this._radius = 25;
   this._slave = 0;
   this._amount = 16;
+  this._tweens = [];
   
   this._verts = new Array(this._amount);
 
@@ -135,16 +137,52 @@ Suspension.prototype.animate_in = function() {
   var self = this;
 
   this.playing = true;
-  
-  setTimeout(function() {
-    self.animate_end();
-  }, this.duration );
+  for ( var i = 0; i < this._amount; i += 1 ) {
+    var v = this._verts[i]
+      , from = { x: v.x, y: v.y }
+      , to = { x: v.destination.x, y: v.destination.y }
+      , tween = Tween( from )
+          .ease( this.easing )
+          // .delay( this.delay )
+          .duration( this.duration )
+          .to( to )
+          .update( function( o ) {
+            v.x = o.x;
+            v.y = o.y;
+            console.log( v.x );
+          } ).on( 'end', function(){
+            var index = self._tweens.indexOf( this );
+            self._tweens.splice( index, 1 );
+          });
+    this._tweens.push( tween );
+  }
+
+  var lastTween = Tween( { slave: 0 } )
+    .ease( this.easing )
+    // .delay( this.delay )
+    .duration( this.duration )
+    .to( { slave: 0 } )
+    .update( function( o ) {
+      self._slave = o.slave;
+    } )
+    .on( 'end', function(){
+
+      var index = self._tweens.indexOf( this );
+      self._tweens.splice( index, 1 );
+
+      self.animate_end();
+    } );
+    this._tweens.push( lastTween );
+
+  // setTimeout(function() {
+  //   self.animate_end();
+  // }, this.duration );
 
 };
 
 
 Suspension.prototype.animate_end = function() {
-  console.log( 'animate end' );
+  
   playing = false;
 
   for ( var i = 0; i < this._amount; i += 1 ) {
@@ -157,6 +195,10 @@ Suspension.prototype.animate_end = function() {
 Suspension.prototype.render = function() {
   if ( !this.playing ) return;
   
+  this._tweens.forEach(function( tween ) {
+    tween.update();
+  })
+
   var context = this._app;
   // ctx.noStroke();
   this._app.fillStyle = this.pigment.toString();

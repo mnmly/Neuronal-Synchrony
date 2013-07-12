@@ -48,6 +48,7 @@ Piston.prototype.render = function() {
   // ctx.noStroke();
   this._app.fillStyle = this.pigment.toString();
   this._app.fillRect(this.x, this.y, this.w, this.h);
+  debugger
 
 };
 

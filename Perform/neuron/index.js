@@ -7,7 +7,7 @@ function Neuron( app ){
   this.pigment = Color.RGBA(0, 0, 0, 1);
   this.duration = 0.15;
   this.delay = 0;
-  this.easing = 'Circ.out'
+  this.easing = 'out-circ';
   this.playing = false;
 }
 
