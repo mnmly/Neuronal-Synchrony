@@ -43,7 +43,7 @@ Palette.prototype.update = function( ) {
     // At a standstill
     this._assign();
   } else {
-    this._state = ease( this._state, this._dest, this._easing);
+    this._state = ease( this._state, this._dest, this._easing );
     for ( var i = 0; i < this._amount; i += 1 ) {
 
       var s = this.source[i]
@@ -53,7 +53,6 @@ Palette.prototype.update = function( ) {
       c.r = lerp( s.r, d.r, this._state );
       c.g = lerp( s.g, d.g, this._state );
       c.b = lerp( s.b, d.b, this._state );
-
     }
   }
 };

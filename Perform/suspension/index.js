@@ -149,7 +149,6 @@ Suspension.prototype.animate_in = function() {
           .update( function( o ) {
             v.x = o.x;
             v.y = o.y;
-            console.log( v.x );
           } ).on( 'end', function(){
             var index = self._tweens.indexOf( this );
             self._tweens.splice( index, 1 );
@@ -159,24 +158,15 @@ Suspension.prototype.animate_in = function() {
 
   var lastTween = Tween( { slave: 0 } )
     .ease( this.easing )
-    // .delay( this.delay )
     .duration( this.duration )
     .to( { slave: 0 } )
-    .update( function( o ) {
-      self._slave = o.slave;
-    } )
+    .update( function( o ) { self._slave = o.slave; } )
     .on( 'end', function(){
-
       var index = self._tweens.indexOf( this );
       self._tweens.splice( index, 1 );
-
       self.animate_end();
     } );
     this._tweens.push( lastTween );
-
-  // setTimeout(function() {
-  //   self.animate_end();
-  // }, this.duration );
 
 };
 
@@ -190,7 +180,6 @@ Suspension.prototype.animate_end = function() {
     this._verts[i].y = this._origin.y;
   }
 };
-
 
 Suspension.prototype.render = function() {
   if ( !this.playing ) return;

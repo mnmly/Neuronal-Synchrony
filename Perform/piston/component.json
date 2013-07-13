@@ -2,7 +2,8 @@
   "name": "piston",
   "dependencies": {
     "component/inherit": "*",
-    "component/color": "*"
+    "component/color": "*",
+    "component/tween": "*"
   },
   "scripts": [
     "index.js"

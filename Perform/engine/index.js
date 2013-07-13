@@ -19,7 +19,7 @@ function Engine(router, x, y, width, height){
   this.y = y - (this.h / 2);
 
   this.gutter = 0;
-  this.duration = 0.15;
+  this.duration = 0.15 * 1000;
   this.delay = 0;
   this.initialize();
 }
@@ -28,7 +28,7 @@ Engine.prototype.isPlaying = function() {
 
   var result = false;
   for (var i = 0; i < this.amount; i += 1) {
-    var piston = pistons[i];
+    var piston = this._pistons[i];
     if (piston.playing) {
       result = true;
       break;
@@ -86,5 +86,11 @@ Engine.prototype.play = function() {
 Engine.prototype.render = function() {
   for ( var i = 0; i < this._amount; i += 1 ) {
     this._pistons[i].render();
+  }
+};
+
+Engine.prototype.update = function() {
+  for ( var i = 0; i < this._amount; i += 1 ) {
+    this._pistons[i].update();
   }
 };

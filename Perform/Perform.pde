@@ -1,3 +1,4 @@
+
 /**
  * Neuronal Synchrony
  * 
@@ -17,6 +18,8 @@
  * @jonobr1
  */
 
+
+import java.util.Date;
 import de.looksgood.ani.*;
 import de.looksgood.ani.easing.*;
 

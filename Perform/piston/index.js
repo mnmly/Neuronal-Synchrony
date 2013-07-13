@@ -1,5 +1,6 @@
-var inherit = require('inherit')
-  , Neuron = require('neuron');
+var inherit = require( 'inherit' )
+  , Tween = require( 'tween' )
+  , Neuron = require( 'neuron' );
 
 module.exports = Piston;
 
@@ -48,30 +49,56 @@ Piston.prototype.render = function() {
   // ctx.noStroke();
   this._app.fillStyle = this.pigment.toString();
   this._app.fillRect(this.x, this.y, this.w, this.h);
-  debugger
 
 };
 
 Piston.prototype.play = function() {
   if (this.playing) return;
+  console.log( 'playing' );
   this._animate_in();
 };
 
 Piston.prototype._animate_in = function() {
   this.playing = true;
   this._reset();
-  // Ani.to(this, this.duration, this.delay, "w", this._w, this.easing, "onEnd:animate_out");
+  console.log( this.duration );
   var self = this;
-  setTimeout(function(){
-    self._animate_out();
-  }, this.duration)
+  var from = { w: this.w }
+    , to = { w: this._w }
+    , tween = Tween( from )
+      .to( to )
+      .ease( this.easing )
+      .duration( this.duration )
+      .update( function( o ){
+        self.w = o.w;
+      } )
+      .on( 'end', function(){
+        self._animate_out();
+        var index = self._tweens.indexOf( this );
+        self._tweens.splice( index, 1 );
+      } );
+  this._tweens.push( tween );
 };
 
 Piston.prototype._animate_out = function() {
   var self = this;
-  setTimeout(function(){
-    self._animate_end();
-  }, this.duration)
+
+  var from = { x: this.x, w: this.w }
+    , to = { x: this._w + this._x, w: 0 }
+    , tween = Tween( from )
+      .to( to )
+      .ease( this.easing )
+      .duration( this.duration )
+      .update( function( o ){
+        self.x = o.x;
+        self.w = o.w;
+      } )
+      .on( 'end', function(){
+        self._animate_end();
+        var index = self._tweens.indexOf( this );
+        self._tweens.splice( index, 1 );
+      } )
+  this._tweens.push( tween );
 };
 
 Piston.prototype._animate_end = function() {

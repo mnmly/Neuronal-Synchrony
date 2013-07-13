@@ -1,3 +1,4 @@
+
 class Record {
 
   private Date endTime;

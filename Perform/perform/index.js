@@ -15,10 +15,15 @@ function Perform(){
   var width = 1280
     , height = 800
     , firstFrame = false
+    , setup = this.setup.bind( this )
+    , update = this.update.bind( this )
+    , draw = this.draw.bind( this )
+    , keyup = this.keyup.bind( this )
     , params = {
-        setup: this.setup.bind( this )
-      , update: this.update.bind( this )
-      , draw: this.draw.bind( this )
+        setup: setup
+      , update: update
+      , draw: draw
+      , keyup: keyup
       , width: width
       , height: height
     };
@@ -60,16 +65,6 @@ function Perform(){
   this.prism1 = new Prism( this.app, 500 );
   this.prism1.setColor( this.palette.getColor( Palette.BLACK ) );
   
-  // this.clay = new Clay( this.app, 500 );
-  // this.clay.setColor( this.palette.getColor( this.palette.MIDDLE ) );
-  var self = this;
-  setTimeout(function() {
-
-    self.engine.play();
-    self.suspension.play();
-    self.suspension1.play();
-    
-  }, 1000)
 }
 
 
@@ -83,14 +78,45 @@ Perform.prototype.update = function() {
     this.app.frameCount++;
     this.router.update();
     this.palette.update();
+    this.engine.update();
+
+    this.suspension.update();
+    this.suspension1.update();
+    this.suspension2.update();
   }
+
+};
+
+Perform.prototype.keyup = function( e ) {
+  var key = String.fromCharCode( e.keyCode );
+
+  if ( !this.engineReverse.isPlaying() && key == 'e' || key == 'E' ) {
+
+    var amp = this.router.getBand( this.router.depth / 4, false );
+    this.engine.setAmount( map( amp, 0, 1, 1, 12 ) );
+    if ( this.randomize ) {
+      this.engine.setDimensions(random(this.app.width / 4, this.app.width), map(amp, 0, 1, this.app.height / 8, this.app.height));
+    }
+    this.engine.initialize();
+    this.engine.play();
+
+  } else if (key == 's' || key == 'S') {
+
+    var amp = this.router.getBand(this.router.depth - this.router.depth / 10, false);
+    if ( this.randomize ) {
+      tis.suspension.setAmount(map(amp, 0, 1, 8, 32));
+    }
+    this.suspension.setTheta(random(TWO_PI));
+    this.suspension.initialize();
+    this.suspension.play();
+  } 
 
 };
 
 Perform.prototype.draw = function(){
   
   if ( this.app ){
-    this.fillStyle = this.bg.toString();
+    this.app.fillStyle = this.bg.toString();
     this.app.fillRect(0, 0, this.app.width, this.app.height);
     
     // clay.render();  
