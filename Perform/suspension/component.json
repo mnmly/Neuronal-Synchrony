@@ -3,7 +3,8 @@
   "dependencies": {
     "component/tween": "*",
     "component/inherit": "*",
-    "component/vector": "*"
+    "component/vector": "*",
+    "visionmedia/debug": "*"
   },
   "scripts": [
     "index.js"

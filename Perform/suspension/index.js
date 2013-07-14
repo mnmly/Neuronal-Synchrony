@@ -1,4 +1,5 @@
 var inherit = require( 'inherit' )
+  , debug = require( 'debug' )( 'neuronal:suspension' )
   , Tween = require( 'tween' )
   , Vector = require( 'vector' )
   , Neuron = require( 'neuron' );
@@ -8,8 +9,7 @@ module.exports = Suspension;
 function Suspension( app, duration ) {
 
   Neuron.apply( this, arguments );
-
-  this.duration = duration / 1000;
+  this.duration = duration;
   this._origin = new Vector( this._app.width / 2, this._app.height / 2 );
   this._theta = random( TWO_PI );
   this._deviation = HALF_PI;
@@ -118,7 +118,6 @@ Suspension.prototype.initialize = function( ) {
     vert.destination.x = x;
     vert.destination.y = y;
     vert.radius = r;
-
   }
 
 };
@@ -137,21 +136,24 @@ Suspension.prototype.animate_in = function() {
   var self = this;
 
   this.playing = true;
+
+  var update = function( v ){
+    return function( o ){
+      v.x = o.x;
+      v.y = o.y;
+    }
+  }
   for ( var i = 0; i < this._amount; i += 1 ) {
     var v = this._verts[i]
       , from = { x: v.x, y: v.y }
       , to = { x: v.destination.x, y: v.destination.y }
       , tween = Tween( from )
           .ease( this.easing )
-          // .delay( this.delay )
           .duration( this.duration )
           .to( to )
-          .update( function( o ) {
-            v.x = o.x;
-            v.y = o.y;
-          } ).on( 'end', function(){
-            var index = self._tweens.indexOf( this );
-            self._tweens.splice( index, 1 );
+          .update( update( v ) )
+          .on( 'end', function(){
+            self._removeTween( this );
           });
     this._tweens.push( tween );
   }
@@ -173,8 +175,9 @@ Suspension.prototype.animate_in = function() {
 
 Suspension.prototype.animate_end = function() {
   
-  playing = false;
-
+  this.playing = false;
+  debug( 'animate_end' );
+  
   for ( var i = 0; i < this._amount; i += 1 ) {
     this._verts[i].x = this._origin.x;
     this._verts[i].y = this._origin.y;
@@ -184,10 +187,6 @@ Suspension.prototype.animate_end = function() {
 Suspension.prototype.render = function() {
   if ( !this.playing ) return;
   
-  this._tweens.forEach(function( tween ) {
-    tween.update();
-  })
-
   var context = this._app;
   // ctx.noStroke();
   this._app.fillStyle = this.pigment.toString();
@@ -195,7 +194,7 @@ Suspension.prototype.render = function() {
   for ( var i = 0; i < this._amount; i += 1 ) {
     var v = this._verts[i];
     // ellipse( v.x, v.y, v.radius, v.radius );
-    this._app.arc( v.x, v.y, v.radius, 0, TWO_PI, true);
+    this._app.arc( v.x, v.y, v.radius / 2, 0, TWO_PI, true);
   }
   this._app.closePath();
   this._app.fill();

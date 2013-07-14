@@ -1,4 +1,5 @@
 var inherit = require( 'inherit' )
+  , Tween = require( 'tween' )
   , Vector = require( 'vector' )
   , Neuron = require( 'neuron' );
 
@@ -13,6 +14,7 @@ function Moon( app, duration ){
   this.x = this._app.width / 2;
   this.y = this._app.height / 2;
   this.r = this._app.height / 3;
+  this._slave = 0;
   this._startAngle = 0.0;
   this.setDuration( duration );
   this.initialize();
@@ -31,8 +33,8 @@ Moon.prototype.initialize = function( ) {
 
   if ( this.playing ) return;
   
+  this.__points = new Array( this._amount );
   this._points = new Array( this._amount );
-  this.points = new Array( this._amount );
   this.reset();
 
 };
@@ -51,11 +53,44 @@ Moon.prototype.animate_in = function( ) {
   var self = this;
 
   this.playing = true;
-  
-  setTimeout(function() {
-    self.animate_out();
-  }, this.duration );
 
+  var update = function( pos ) {
+    return function(o){
+      pos.x = o.x;
+      pos.y = o.y;
+    }
+  }
+
+  for ( var i = 0; i < this._amount; i += 1 ) {
+    var pos = this._points[i]
+      , ref = this.__points[i]
+      , from = { x: pos.x, y: pos.y }
+      , to = { x: ref.x, y: ref.y }
+      , tween = Tween( from )
+              .to( to )
+              .duration( this.duration )
+              .ease( this.easing )
+              .update( update(pos) )
+              .on( 'end', function() {
+                self._removeTween( this );
+              } );
+
+    this._tweens.push( tween );
+  }
+  
+  var lastTween = Tween({ slave: this._slave })
+    .to( { slave: 0 } )
+    .duration( this.duration )
+    .ease( this.easing )
+    .update( function(o) {
+      self._slave = o.slave;
+    } )
+    .on( 'end', function(){
+      self._removeTween( this );
+      self.animate_out();
+    })
+
+  this._tweens.push( lastTween );
 };
 
 
@@ -63,10 +98,47 @@ Moon.prototype.animate_out = function() {
   
   var self = this;
 
-  setTimeout(function() {
-    self.animate_end();
-  }, this.duration );
+  this.playing = true;
 
+  var update = function( pos ) {
+    return function(o){
+      pos.x = o.x;
+      pos.y = o.y;
+    }
+  }
+  
+  var l = ceil( this._amount / 2 )
+  for ( var i = 0; i < l; i += 1 ) {
+    var index = 0 === i ? 0 : this._amount - i
+    var pos = this._points[i]
+      , ref = this.__points[index]
+      , from = { x: pos.x, y: pos.y }
+      , to = { x: ref.x, y: ref.y }
+      , tween = Tween( from )
+              .to( to )
+              .duration( this.duration )
+              .ease( this.easing )
+              .update( update(pos) )
+              .on( 'end', function() {
+                self._removeTween( this );
+              } );
+
+    this._tweens.push( tween );
+  }
+  
+  var lastTween = Tween({ slave: this._slave })
+    .to( { slave: 0 } )
+    .duration( this.duration )
+    .ease( this.easing )
+    .update( function(o) {
+      self._slave = o.slave;
+    } )
+    .on( 'end', function(){
+      self._removeTween( this );
+      self.animate_end();
+    })
+
+  this._tweens.push( lastTween );
 };
 
 
@@ -86,14 +158,15 @@ Moon.prototype.reset = function() {
       , xpos = this.r * cos( theta ) + this.x
       , ypos = this.r * sin( theta ) + this.y;
 
-    this._points[i] = new Vector(xpos, ypos);
-
-    var ref = ( i <= this._amount / 2 ) ? this._points[i] : this._points[this._amount - i];
-
-    this.points[i] = new Vector( ref.x, ref.y );
-
+    this.__points[i] = new Vector( xpos, ypos );
+    if ( i <= this._amount / 2 ) {
+      var ref = this.__points[i];
+      this._points[i] = new Vector( ref.x, ref.y );
+    } else {
+      var ref = this.__points[this._amount - i];
+      this._points[i] = new Vector( ref.x, ref.y );
+    }
   }
-
 };
 
 
@@ -102,22 +175,22 @@ Moon.prototype.render = function() {
   if ( !this.playing ) return;
 
   // noStroke
-  this.app.fillStyle = this.pigment.toString();
-
-  this.app.beginPath();
+  this._app.fillStyle = this.pigment.toString();
+  
+  this._app.beginPath();
   
   for ( var i = 0; i < this._amount; i += 1 ) {
 
-    var pos = this._amount[i];
+    var pos = this._points[i];
 
     if (i === 0) {
-      this.app.moveTo( pos.x, pos.y );
+      this._app.moveTo( pos.x, pos.y );
     } else {
-      this.app.moveTo( pos.x, pos.y );
+      this._app.lineTo( pos.x, pos.y );
     }
     
   }
 
-  this.app.closePath();
-
+  this._app.closePath();
+  this._app.fill();
 };

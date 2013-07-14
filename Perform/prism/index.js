@@ -1,4 +1,5 @@
 var inherit = require( 'inherit' )
+  , Tween = require( 'tween' )
   , Vector = require( 'vector' )
   , Neuron = require( 'neuron' );
 
@@ -11,7 +12,7 @@ function Prism( app, duration ){
   this.x = this._app.width / 2;
   this.y = this._app.height / 2;
   this.distance = this._app.width;
-  this.setDuration( duration / 1000 );
+  this.setDuration( duration );
   
   this._amount = 3;
   this._offset = - PI / 2;
@@ -58,16 +59,48 @@ Prism.prototype._animate_in = function( ) {
   var self = this;
 
   this.playing = true;
-  
-  setTimeout(function() {
-    self.animate_end();
-  }, this.duration );
 
+  var update = function( pos ) {
+    return function(o){
+      pos.x = o.x;
+      pos.y = o.y;
+    }
+  }
+
+  for ( var i = 0; i < this._amount; i += 1 ) {
+    var pos = this._points[i]
+      , ref = this.__points[i]
+      , from = { x: pos.x, y: pos.y }
+      , to = { x: ref.x, y: ref.y }
+      , tween = Tween( from )
+              .to( to )
+              .duration( this.duration )
+              .ease( this.easing )
+              .update( update(pos) )
+              .on( 'end', function() {
+                self._removeTween( this );
+              } );
+
+    this._tweens.push( tween );
+  }
+  
+  var lastTween = Tween({ magnitude: this._magnitude })
+    .to( { magnitude: this._m } )
+    .duration( this.duration )
+    .ease( this.easing )
+    .update( function(o) {
+      self._magnitude = o.magnitude;
+    } )
+    .on( 'end', function(){
+      self._removeTween( this );
+      self.animate_end();
+    })
+
+  this._tweens.push( lastTween );
 };
 
 
 Prism.prototype.animate_end = function() {
-    
   this.reset();
   this.playing = false;
 
@@ -114,27 +147,28 @@ Prism.prototype.render = function() {
   // noFill
   this._app.fillStyle = 'rgba(0, 0, 0, 0)';
   this._app.beginPath();
-  
   for ( var i = 0; i < this._amount; i += 1 ) {
 
-    var pos = this._amount[i];
+    var pos = this._points[i];
 
     if (i === 0) {
       this._app.moveTo( pos.x, pos.y );
     } else {
-      this._app.moveTo( pos.x, pos.y );
+      this._app.lineTo( pos.x, pos.y );
     }
     
   }
-
   this._app.closePath();
-  
-  this._app.strokeStyle = 'rgba(0, 0, 0, 0)';
+  this._app.stroke();
+
+  // this._app.lineWidth = 0;
   this._app.fillStyle = this.pigment.toString();
-  
+  this._app.beginPath();
   for ( var i = 0; i < this._amount; i += 1 ) {
     var pos = this._points[i];
-    this._app.ellipse( pos.x, pos.y, this._magnitude, this._magnitude );
+    this._app.arc( pos.x, pos.y, this._magnitude / 2, 0, TWO_PI, true );
   }
+  this._app.closePath();
+  this._app.fill();
 
 };

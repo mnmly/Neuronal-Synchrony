@@ -1,7 +1,8 @@
 {
   "name": "neuron",
   "dependencies": {
-    "component/color": "*"
+    "component/color": "*",
+    "visionmedia/debug": "*"
   },
   "scripts": [
     "index.js"

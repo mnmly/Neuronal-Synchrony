@@ -10,6 +10,7 @@ function Neuron( app ){
   this.delay = 0;
   this.easing = 'out-circ';
   this.playing = false;
+  this._removeTween = this._removeTween.bind( this );
 }
 
 Neuron.prototype.setColor = function(color ) {
@@ -53,11 +54,14 @@ Neuron.prototype.getStageSize = function() {
 
 Neuron.prototype.update = function() {
 
-  if ( this._tweens ){
-    this._tweens.forEach( function( tween ){
-      tween.update();
-    } );
-  }
+  this._tweens.forEach( function( tween ){
+    tween.update();
+  } );
 
 
+};
+
+Neuron.prototype._removeTween = function( tween ) {
+  var index = this._tweens.indexOf( tween );
+  this._tweens.splice( index, 1 );
 };

@@ -1,5 +1,5 @@
 {
-  "name": "prism",
+  "name": "squiggle",
   "dependencies": {
     "component/inherit": "*",
     "component/vector": "*",

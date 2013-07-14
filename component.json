@@ -8,6 +8,7 @@
   ],
   "dependencies": {
     "component/vector": "*",
-    "component/tween": "*"
+    "component/tween": "*",
+    "visionmedia/debug": "*"
   }
 }

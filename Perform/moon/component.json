@@ -2,7 +2,8 @@
   "name": "moon",
   "dependencies": {
     "component/inherit": "*",
-    "component/vector": "*"
+    "component/vector": "*",
+    "component/tween": "*"
   },
   "scripts": [
     "index.js"

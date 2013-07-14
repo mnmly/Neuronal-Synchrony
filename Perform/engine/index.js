@@ -27,9 +27,9 @@ function Engine(router, x, y, width, height){
 Engine.prototype.isPlaying = function() {
 
   var result = false;
-  for (var i = 0; i < this.amount; i += 1) {
+  for (var i = 0; i < this._amount; i += 1) {
     var piston = this._pistons[i];
-    if (piston.playing) {
+    if ( piston.playing ) {
       result = true;
       break;
     }

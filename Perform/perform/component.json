@@ -1,7 +1,8 @@
 {
   "name": "perform",
   "dependencies": {
-    "mnmly/sketch.js": "*"
+    "mnmly/sketch.js": "*",
+    "visionmedia/debug": "*"
   },
   "scripts": [
     "index.js"
@@ -12,6 +13,7 @@
     "prism",
     "clay",
     "suspension",
+    "squiggle",
     "palette",
     "router",
     "engine"
