@@ -94,31 +94,33 @@ PinWheel.prototype.animate_in = function( ) {
       pos.y = o.y;
     }
   }
-
+  var sequences = [];
   for ( var i = 0; i < this._amount; i += 1 ) {
+
     var index = i + 1
       , _drift = this._drift / index
       , center = PI * ( index / this._amount );
-    delay += this.duration;
+    delay += this.dur;
+    sequences[i] = [];
     for ( var j = 0; j < this._amount; j += 1 ) {
       var pct = min( j / index, 1.0 )
         , theta = pct * this._endAngle + this._startAngle + center + this._drift
         , p = this._points[j]
         , x = this._distance * cos( theta ) + this._origin.x
         , y = this._distance * sin( theta ) + this._origin.y
-        , from = { x: p.x, y: p.y }
+        , from = 0 === i ? { x: p.x, y: p.y } : { x: sequences[i - 1][j].x, y: sequences[i - 1][j].y }
         , to = { x: x, y: y }
         , tween = Tween( from )
                 .delay( delay )
                 .to( to )
-                .duration( this.duration )
+                .duration( this.dur )
                 .ease( this.easing )
                 .update( update(p) )
                 .on( 'end', function() {
-                  console.log( 'end' );
                   self._removeTween( this );
                 } );
 
+    sequences[i].push({ x: x, y: y });
     this._tweens.push( tween );
     // if ( j >= index ) {
     //   x = this._origin.x;
@@ -133,7 +135,7 @@ PinWheel.prototype.animate_in = function( ) {
   
   var lastTween = Tween({ slave: this._slave })
     .to( { slave: 0 } )
-    .duration( this.duration )
+    .duration( this.dur )
     .delay( delay )
     .ease( this.easing )
     .update( function(o) {
@@ -167,7 +169,7 @@ PinWheel.prototype.animate_out = function() {
       , to = { x: this._origin.x, y: this._origin.y }
       , tween = Tween( from )
               .to( to )
-              .duration( this.duration )
+              .duration( this.dur )
               .ease( this.easing )
               .update( update( p ) )
               .on( 'end', function() {
@@ -179,7 +181,7 @@ PinWheel.prototype.animate_out = function() {
   
   var lastTween = Tween({ slave: this._slave })
     .to( { slave: 0 } )
-    .duration( this.duration )
+    .duration( this.dur )
     .ease( this.easing )
     .update( function(o) {
       self._slave = o.slave;
@@ -226,4 +228,8 @@ PinWheel.prototype.render = function() {
 
   this._app.closePath();
   this._app.fill();
+};
+
+PinWheel.prototype._createTween = function() {
+  return _tween;
 };

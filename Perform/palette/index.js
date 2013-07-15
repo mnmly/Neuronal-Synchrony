@@ -28,11 +28,22 @@ function Palette(){
 Palette.Color = PaletteColor;
 inherit( PaletteColor, Color );
 
+Palette.prototype.next = function() {
+  if ( !this._assigned ) return;
+  
+  this._index = ( this._index + 1 == this._colors.length ) ? 0 : this._index + 1
+  this.destination = this._colors[this._index];
+  this.reset()
+};
 
 Palette.prototype.getColor = function( type ) {
   return this.current[type];
 };
 
+Palette.prototype.reset = function() {
+  this._state = 0.0;
+  this._assigned = false;
+};
 
 /**
  * Updates the tweening of the colors
@@ -50,9 +61,9 @@ Palette.prototype.update = function( ) {
         , c = this.current[i]
         , d = this.destination[i];
 
-      c.r = lerp( s.r, d.r, this._state );
-      c.g = lerp( s.g, d.g, this._state );
-      c.b = lerp( s.b, d.b, this._state );
+      c.r = parseInt( lerp( s.r, d.r, this._state ) );
+      c.g = parseInt( lerp( s.g, d.g, this._state ) );
+      c.b = parseInt( lerp( s.b, d.b, this._state ) );
     }
   }
 };
