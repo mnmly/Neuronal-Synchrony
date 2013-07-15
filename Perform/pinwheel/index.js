@@ -86,6 +86,7 @@ PinWheel.prototype.animate_in = function( ) {
   var self = this;
 
   this.playing = true;
+  var delay = 0;
 
   var update = function( pos ) {
     return function(o){
@@ -98,7 +99,7 @@ PinWheel.prototype.animate_in = function( ) {
     var index = i + 1
       , _drift = this._drift / index
       , center = PI * ( index / this._amount );
-
+    delay += this.duration;
     for ( var j = 0; j < this._amount; j += 1 ) {
       var pct = min( j / index, 1.0 )
         , theta = pct * this._endAngle + this._startAngle + center + this._drift
@@ -108,11 +109,13 @@ PinWheel.prototype.animate_in = function( ) {
         , from = { x: p.x, y: p.y }
         , to = { x: x, y: y }
         , tween = Tween( from )
+                .delay( delay )
                 .to( to )
                 .duration( this.duration )
                 .ease( this.easing )
                 .update( update(p) )
                 .on( 'end', function() {
+                  console.log( 'end' );
                   self._removeTween( this );
                 } );
 
@@ -131,6 +134,7 @@ PinWheel.prototype.animate_in = function( ) {
   var lastTween = Tween({ slave: this._slave })
     .to( { slave: 0 } )
     .duration( this.duration )
+    .delay( delay )
     .ease( this.easing )
     .update( function(o) {
       self._slave = o.slave;

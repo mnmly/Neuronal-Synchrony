@@ -3,7 +3,7 @@
   "dependencies": {
     "component/inherit": "*",
     "component/vector": "*",
-    "component/tween": "*"
+    "mnmly/tween": "feature/delay"
   },
   "scripts": [
     "index.js"
