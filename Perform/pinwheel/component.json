@@ -1,8 +1,8 @@
 {
-  "name": "clay",
+  "name": "pinwheel",
   "dependencies": {
     "component/inherit": "*",
-    "mnmly/vector": "feature/dot-magnitude-anglebetween",
+    "component/vector": "*",
     "component/tween": "*"
   },
   "scripts": [

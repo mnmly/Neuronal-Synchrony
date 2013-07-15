@@ -179,9 +179,7 @@ Squiggle.prototype.render = function() {
         this._app.lineTo( p.x, p.y );
       }
     }
-    console.log('entering')
   } else {
-    console.log(' not entering')
     var l = this._getPointOnLine( 1.0 );
     this._app.moveTo( l.x, l.y );
     for ( var i = this._amount - 1; i >= 0; i-- ) {

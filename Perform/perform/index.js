@@ -5,9 +5,10 @@ var Sketch = require( 'sketch' )
   , Suspension = require( 'suspension' )
   , Moon = require( 'moon' )
   , Prism = require( 'prism' )
- // , Clay = require( 'clay' )
+  , Clay = require( 'clay' )
   , Engine = require( 'engine' )
   , Squiggle = require( 'squiggle' )
+  , Pinwheel = require( 'pinwheel' )
   , Debug = require( 'debug' )
   , debug = Debug('neuronal:perform')
   
@@ -71,8 +72,14 @@ function Perform(){
   this.prism1 = new Prism( this.app, 500 );
   this.prism1.setColor( this.palette.getColor( Palette.BLACK ) );
   
+  this.clay = new Clay( this.app, 500 );
+  this.clay.setColor( this.palette.getColor( Palette.MIDDLE) );
+  
+  this.pinwheel = new Pinwheel( this.app, 1000);
+  this.pinwheel.setColor( this.palette.getColor( Palette.ACCENT ) );
+  
   this.squiggle = new Squiggle( this.app, 500 );
-  this.prism1.setColor( this.palette.getColor( Palette.HIGHLIGHT ) );
+  this.squiggle.setColor( this.palette.getColor( Palette.HIGHLIGHT ) );
 }
 
 
@@ -82,28 +89,30 @@ Perform.prototype.setup = function() {
 
 }
 Perform.prototype.keyup = function( e ) {
-  var key = String.fromCharCode( e.keyCode );
+  var key = String.fromCharCode( e.keyCode )
+    , width = this.app.width
+    , height = this.app.height;
 
   if ( !this.engineReverse.isPlaying() && key == 'e' || key == 'E' ) {
 
     var amp = this.router.getBand( this.router.depth / 4, false );
     this.engine.setAmount( map( amp, 0, 1, 1, 12 ) );
     if ( this.randomize ) {
-      this.engine.setDimensions(random(this.app.width / 4, this.app.width), map(amp, 0, 1, this.app.height / 8, this.app.height));
+      this.engine.setDimensions( random( width / 4, width), map(amp, 0, 1, height / 8, height) );
     }
     this.engine.initialize();
     this.engine.play();
   
-  } else if (!this.engine.isPlaying() && key == 'r' || key == 'R') {
+  } else if ( !this.engine.isPlaying() && key == 'r' || key == 'R' ) {
     var amp = this.router.getBand( this.router.depth / 4, false );
     this.engineReverse.setAmount( map( amp, 0, 1, 1, 12 ) );
     if ( this.randomize ) {
-      this.engine.setDimensions(random(this.app.width / 4, this.app.width), map(amp, 0, 1, this.app.height / 8, this.app.height));
+      this.engine.setDimensions( random( width / 4, width), map( amp, 0, 1, height / 8, height ));
     }
     this.engineReverse.initialize();
     this.engineReverse.play();
 
-  } else if (key == 'm' || key == 'M') {
+  } else if ( key == 'm' || key == 'M' ) {
     
     if ( this.randomize ) {
       this.moon.setAngle( random( TWO_PI ) );
@@ -116,13 +125,75 @@ Perform.prototype.keyup = function( e ) {
   
   } else if (key == 's' || key == 'S') {
 
-    var amp = this.router.getBand(this.router.depth - this.router.depth / 10, false);
+    var amp = this.router.getBand( this.router.depth - this.router.depth / 10, false );
     if ( this.randomize ) {
-      this.suspension.setAmount(map(amp, 0, 1, 8, 32));
+      this.suspension.setAmount( map( amp, 0, 1, 8, 32 ) );
     }
-    this.suspension.setTheta(random(TWO_PI));
+    this.suspension.setTheta( random( TWO_PI ) );
     this.suspension.initialize();
     this.suspension.play();
+  
+  } else if ( key =='c' || key == 'C' ) {
+
+    this.clay.setAmount( floor( random( 8, 16 ) ) );
+    var x, y, pos = random( 8 );
+    if ( pos > 7 ) {
+      // north
+      x = width / 2;
+      y = 0;
+    } else if ( pos > 6 ) {
+      // north-west
+      x = 0;
+      y = 0;
+    } 
+    else if ( pos > 5 ) {
+      // west
+      x = 0;
+      y = height / 2;
+    } 
+    else if (pos > 4) {
+      // south-west
+      x = 0;
+      y = height;
+    } 
+    else if (pos > 3) {
+      // south
+      x = width / 2;
+      y = height;
+    }  
+    else if (pos > 2) {
+      // south-east
+      x = width;
+      y = height;
+    } 
+    else if (pos > 1) {
+      // east
+      x = width;
+      y = height / 2;
+    } 
+    else {
+      x = width;
+      y = 0;
+    }
+    this.clay.setOrigin( x, y );
+    this.clay.setImpact( random( width ), random( height ) );
+    this.clay.initialize();
+    this.clay.play();
+  
+  } else if (key == 'o' || key == 'O') {
+    var amp = this.router.getBand( this.router.depth / 2, false );
+    this.pinwheel.setAmount( map( amp, 0, 1, 4, 10 ) );
+    if ( this.randomize ) {
+      var startAngle = random( TWO_PI )
+        , endAngle = random( startAngle, TWO_PI );
+      this.pinwheel.setAngles( startAngle, endAngle );
+    } 
+    else {
+      this.pinwheel.setAngles( 0, TWO_PI );
+    }
+    this.pinwheel.setDrift( random( TWO_PI ) );
+    this.pinwheel.initialize();
+    this.pinwheel.play();
   
   } else if (key == 'l' || key == 'L') {
 
@@ -155,7 +226,9 @@ Perform.prototype.draw = function(){
     this.app.fillStyle = this.bg.toString();
     this.app.fillRect(0, 0, this.app.width, this.app.height);
     
-    // clay.render();  
+    this.clay.render();  
+    this.prism.render();
+    this.prism1.render();
 
     //this.engineReverse.render();
     // this.pinwheel.render();
@@ -163,8 +236,7 @@ Perform.prototype.draw = function(){
     this.engine.render();
     this.engineReverse.render();
     this.moon.render();
-    this.prism.render();
-    this.prism1.render();
+    this.pinwheel.render();
     this.squiggle.render();
     this.suspension.render();
     this.suspension1.render();
@@ -178,12 +250,15 @@ Perform.prototype.update = function() {
     this.app.frameCount++;
     this.router.update();
     this.palette.update();
+    
+    this.clay.update();
     this.engine.update();
     this.engineReverse.update();
 
     this.prism.update();
     this.prism1.update();
     this.moon.update();
+    this.pinwheel.update();
     this.squiggle.update();
     this.suspension.update();
     this.suspension1.update();
