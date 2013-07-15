@@ -31,12 +31,15 @@ function Perform(){
       , update: update
       , draw: draw
       , keyup: keyup
-      , width: width
-      , height: height
+      // , width: width
+      // , height: height
     };
 
   this.app = Sketch.create( params );
   this.app.frameCount = 0;
+
+  var width = this.app.width
+    , height = this.app.height;
      
   // this.record = new Record();
   
