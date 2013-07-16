@@ -136,8 +136,8 @@ Perform.prototype.touchend = function( e ) {
 
   for ( var i = 0; i < e.changedTouches.length; i += 1 ) {
     var t = e.changedTouches[i]
-      , col = floor( t.x / width * 3 )
-      , row = floor( t.y / height * 4 )
+      , col = floor( t.clientX / width * 3 )
+      , row = floor( t.clientY / height * 4 )
     this.keyup( this.letters[row][col] );
   }
 
