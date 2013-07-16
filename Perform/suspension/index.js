@@ -83,6 +83,11 @@ Suspension.prototype.setDeviation = function( deviation ) {
 
 };
 
+Suspension.prototype.setAmount = function( amount ) {
+  if ( this.playing ) return;
+  this._amount = amount;
+
+};
 
 Suspension.prototype.setOrigin = function( x, y ) {
 
@@ -106,7 +111,7 @@ Suspension.prototype.initialize = function( ) {
 
   if (this.playing) return;
   
-  for ( var i = 0; i < this._verts.length; i += 1 ) {
+  for ( var i = 0; i < this._amount; i += 1 ) {
 
     var vert = this._verts[i] = new Suspension.Vertex( this._origin.x, this._origin.y )
       , t = this._theta + random( -this._deviation, this._deviation )
@@ -194,6 +199,7 @@ Suspension.prototype.render = function() {
   for ( var i = 0; i < this._amount; i += 1 ) {
     var v = this._verts[i];
     // ellipse( v.x, v.y, v.radius, v.radius );
+    this._app.moveTo(v.x, v.y);
     this._app.arc( v.x, v.y, v.radius / 2, 0, TWO_PI, true);
   }
   this._app.closePath();

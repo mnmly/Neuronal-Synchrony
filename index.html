@@ -2,15 +2,118 @@
 <html>
   <head>
     <title>Neuronal Synchrony</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <style type="text/css" media="all">
       body, html{ margin: 0; padding: 0; }
+      .message{
+        max-width: 280px;
+        width: 100%;
+        margin: 20px auto;
+        position: relative;
+        top: 100px;
+        z-index: 1;
+        font-family: Helvetica;
+        line-height: 1.75;
+        font-size: 0.8rem;
+        padding: 2em;
+        color: hsl(0, 0%, 90%);
+        background: hsla(0, 0%, 0%, .3);
+        font-weight: lighter;
+        letter-spacing: 1px;
+        text-shadow: 0 0 3px hsla(0, 0%, 0%, 0.1);
+        border-radius: 3px;
+        text-align: center;
+        -webkit-transition: .45s cubic-bezier(0.860, 0.000, 0.070, 1.000);
+        transition: .45s cubic-bezier(0.860, 0.000, 0.070, 1.000);
+      }
+      .message-hidden .message{
+        opacity: 0;
+        -webkit-filter: blur(10px);
+        pointer-events: none;
+      }
+      a{
+        color: white;
+        text-decoration: none;
+        font-weight: normal;
+      }
+      code{
+        font-size: 1.0rem;
+      }
+      .sketch{
+        position: absolute;
+        top: 0;
+      }
+
+      .mobile{
+        display: none;
+      }
+      .touch .desktop{
+        display: none;
+      }
+      .touch .mobile{
+        display: block;
+      }
+      .touch .message{
+        top: 50px;
+      }
+      
+
     </style>
   </head>
   <body>
+
+    <div class='message'>
+      <p>
+      This is JavaScript fork of 
+      <a href='http://jonobr1.com/' target='_blank'>Jono Brandel</a>&#8217;s
+      <a href='https://github.com/jonobr1/Neuronal-Synchrony' target='_blank'>Neuronal Synchrony</a>.
+
+      This fork is created purely because I wanted to learn the lots of great motion sequences performanced in the original work.
+      </p>
+      <hr />
+      <div class='keys'>
+        <div class="desktop">
+          <code>E</code>, <code>R</code>, <code>M</code>, <code>P</code>, <code>L</code>, <code>S</code>, <code>D</code>, <code>A</code>, <code>C</code>, <code>O</code>, <code>W</code>, <code>Y</code>, <code>0-9</code>
+        
+          <p><small>Press <code>H</code> to toggle this panel.</small></p>
+        </div>
+        <div class="mobile">
+          <p><small>Tap the cells to trigger.</small></p>
+        </div>
+
+      </div>
+    </div>
+
     <script type="text/javascript" src='build/build.js'></script>
     <script type="text/javascript">
-      var Perform = require('perform');
+      var Perform = require( 'perform' )
+        , debug = require( 'debug' )
+        , message = document.querySelector( '.message' )
+        , body = document.body
+        , isTouch = 'ontouchstart' in window;
+      
+      debug.disable();
+
       performance = new Perform();
+      
+      if ( isTouch ){
+        body.classList.add('touch');
+        performance.drawLines = true;
+      }
+
+      body.addEventListener('keyup', function(e){
+        var key = String.fromCharCode( e.keyCode )
+        if ( key === 'H' ) body.classList.toggle('message-hidden');
+      }, false)
+
+      message.addEventListener('touchend', function(e){
+        body.classList.toggle('message-hidden');
+        performance.drawLines = false;
+      }, false);
+
+      console.log( 'To emphasize again, all the credits goes to @jonobr1.' );
+      console.log( 'Looking forward to two.js version you may open-source someday. by @mnmly :)' );
+
     </script>
   </body>
 </html>

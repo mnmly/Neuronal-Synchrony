@@ -2,7 +2,8 @@
   "name": "perform",
   "dependencies": {
     "mnmly/sketch.js": "*",
-    "visionmedia/debug": "*"
+    "visionmedia/debug": "*",
+    "component/autoscale-canvas": "*"
   },
   "scripts": [
     "index.js"

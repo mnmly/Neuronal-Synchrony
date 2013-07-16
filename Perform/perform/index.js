@@ -1,4 +1,5 @@
 var Sketch = require( 'sketch' )
+  , autoscale = require('autoscale-canvas')
   , Palette = require( 'palette' )
   , Router = require( 'router' )
   , Record = require( 'record' )
@@ -13,34 +14,37 @@ var Sketch = require( 'sketch' )
   , debug = Debug('neuronal:perform')
   
 
-// Debug.enable('*')
+Debug.enable('*')
 
 module.exports = Perform;
 
 function Perform(){
   
-  var width = 1280
-    , height = 800
+  var self = this
     , firstFrame = false
     , setup = this.setup.bind( this )
     , update = this.update.bind( this )
     , draw = this.draw.bind( this )
     , keyup = this.keyup.bind( this )
+    , touchend = this.touchend.bind( this )
+    , drawLines = false
     , params = {
         setup: setup
       , update: update
       , draw: draw
       , keyup: keyup
+      , touchend: touchend
       // , width: width
       // , height: height
-    };
+    }
 
   this.app = Sketch.create( params );
-  this.app.frameCount = 0;
+  autoscale( document.querySelector('canvas') );
 
+  this.app.frameCount = 0;
   var width = this.app.width
     , height = this.app.height;
-     
+  
   // this.record = new Record();
   
   this.router = new Router( this.app, 128, false );
@@ -83,21 +87,48 @@ function Perform(){
   
   this.squiggle = new Squiggle( this.app, 500 );
   this.squiggle.setColor( this.palette.getColor( Palette.HIGHLIGHT ) );
-}
 
+  window.addEventListener('devicemotion', function (e) {
+    x1 = e.accelerationIncludingGravity.x;
+    y1 = e.accelerationIncludingGravity.y;
+    z1 = e.accelerationIncludingGravity.z;
+    Math.abs( e.acceleration.x ) > 3 && self.palette.next();
+  }, false);
+}
 
 
 Perform.prototype.setup = function() {
   debug( 'setting up' );
 
 }
+
+Perform.prototype.letters = [ [ ['E'], ['R'], ['M'] ],
+                              [ ['P'], ['L'], ['S'] ],
+                              [ ['D'], ['A'], ['C'] ],
+                              [ ['O'], ['W'], ['Y'] ] ];
+
+Perform.prototype.touchend = function( e ) {
+
+  var width = this.app.width
+    , height = this.app.height;
+
+  for ( var i = 0; i < e.changedTouches.length; i += 1 ) {
+    var t = e.changedTouches[i]
+      , col = floor( t.x / width * 3 )
+      , row = floor( t.y / height * 4 )
+    this.keyup( this.letters[row][col] );
+  }
+
+};
+
 Perform.prototype.keyup = function( e ) {
-  var key = String.fromCharCode( e.keyCode )
+
+  var key = e.keyCode ? String.fromCharCode( e.keyCode ) : e
     , width = this.app.width
     , height = this.app.height;
 
   debug( 'KEY PRESSED:', key );
-
+  
   if ( !this.engineReverse.isPlaying() && key == 'e' || key == 'E' ) {
 
     var amp = this.router.getBand( this.router.depth / 4, false );
@@ -145,7 +176,7 @@ Perform.prototype.keyup = function( e ) {
 
     var amp = this.router.getBand( this.router.depth - this.router.depth / 10, false );
     if ( this.randomize ) {
-      this.suspension.setAmount( map( amp, 0, 1, 8, 32 ) );
+      this.suspension.setAmount( parseInt( map( amp, 0, 1, 8, 32 ), 10 ) );
     }
     this.suspension.setTheta( random( TWO_PI ) );
     this.suspension.initialize();
@@ -227,7 +258,7 @@ Perform.prototype.keyup = function( e ) {
   
   } else if (key == 'w' || key == 'W') {
     if ( this.randomize ) {
-      this.squiggle.setAngle( this.random( TWO_PI ) );
+      this.squiggle.setAngle( random( TWO_PI ) );
     }
     this.squiggle.setRevolutions( random( 0.25, 6 ) );
     this.squiggle.setAmplitude( random( this.app.height / 8, this.app.height / 3 ) );
@@ -252,6 +283,22 @@ Perform.prototype.draw = function(){
     this.app.fillStyle = this.bg.toString();
     this.app.fillRect(0, 0, this.app.width, this.app.height);
     
+    if ( this.drawLines ){
+      this.app.strokeStyle = this.palette.getColor( 3 ).toString();
+      
+      for ( var i = 1; i <= 3; i += 1 ) {
+        this.app.moveTo( this.app.width / 3 * i, 0 )
+        this.app.lineTo( this.app.width / 3 * i, this.app.height );
+      }
+      
+      for ( var i = 1; i <= 4; i += 1 ) {
+        this.app.moveTo( 0, this.app.height / 4 * i )
+        this.app.lineTo( this.app.width, this.app.height / 4 * i)
+      }
+
+      this.app.stroke();
+    }
+
     this.clay.render();  
     this.prism.render();
     this.prism1.render();
@@ -269,6 +316,7 @@ Perform.prototype.draw = function(){
 }
 
 Perform.prototype.update = function() {
+
   if (this.app){
 
     this.app.frameCount++;

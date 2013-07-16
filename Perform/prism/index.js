@@ -166,6 +166,7 @@ Prism.prototype.render = function() {
   this._app.beginPath();
   for ( var i = 0; i < this._amount; i += 1 ) {
     var pos = this._points[i];
+    this._app.moveTo( pos.x, pos.y );
     this._app.arc( pos.x, pos.y, this._magnitude / 2, 0, TWO_PI, true );
   }
   this._app.closePath();

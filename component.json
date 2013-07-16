@@ -9,6 +9,7 @@
   "dependencies": {
     "component/vector": "*",
     "component/tween": "*",
-    "visionmedia/debug": "*"
+    "visionmedia/debug": "*",
+    "component/autoscale-canvas": "*"
   }
 }
