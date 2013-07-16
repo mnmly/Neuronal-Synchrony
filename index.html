@@ -106,7 +106,7 @@
         if ( key === 'H' ) body.classList.toggle('message-hidden');
       }, false)
 
-      message.addEventListener('touchend', function(e){
+      body.addEventListener('touchend', function(e){
         body.classList.toggle('message-hidden');
         performance.drawLines = false;
       }, false);
