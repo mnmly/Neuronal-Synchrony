@@ -199,93 +199,4457 @@ require.relative = function(parent) {
 
   return localRequire;
 };
-require.register("component-vector/index.js", Function("exports, require, module",
-"\n/**\n * Expose `Vector`.\n */\n\nmodule.exports = Vector;\n\n/**\n * Initialize a new `Vector` with x / y.\n *\n * @param {Number} x\n * @param {Number} y\n * @api public\n */\n\nfunction Vector(x, y) {\n  if (!(this instanceof Vector)) return new Vector(x, y);\n  this.x = x;\n  this.y = y;\n}\n\n/**\n * Return a negated vector.\n *\n * @return {Vector}\n * @api public\n */\n\nVector.prototype.negate = function(){\n  return new Vector(-this.x, -this.y);\n};\n\n/**\n * Add x / y.\n *\n * @param {Vector} p\n * @return {Vector} new vector\n * @api public\n */\n\nVector.prototype.add = function(v){\n  return new Vector(this.x + v.x, this.y + v.y);\n};\n\n/**\n * Sub x / y.\n *\n * @param {Vector} p\n * @return {Vector} new vector\n * @api public\n */\n\nVector.prototype.sub = function(v){\n  return new Vector(this.x - v.x, this.y - v.y);\n};\n\n/**\n * Multiply x / y.\n *\n * @param {Vector} p\n * @return {Vector} new vector\n * @api public\n */\n\nVector.prototype.mul = function(v){\n  return new Vector(this.x * v.x, this.y * v.y);\n};\n\n/**\n * Divide x / y.\n *\n * @param {Vector} p\n * @return {Vector} new vector\n * @api public\n */\n\nVector.prototype.div = function(v){\n  return new Vector(this.x / v.x, this.y / v.y);\n};\n\n/**\n * Check if these vectors are the same.\n *\n * @param {Vector} p\n * @return {Boolean}\n * @api public\n */\n\nVector.prototype.equals = function(v){\n  return this.x == v.x && this.y == v.y;\n};\n\n/**\n * Return a clone of this vector.\n *\n * @return {Vector} new vector\n * @api public\n */\n\nVector.prototype.clone = function(){\n  return new Vector(this.x, this.y);\n};\n\n/**\n * Return angle in radians.\n *\n * @return {Number}\n * @api public\n */\n\nVector.prototype.angle = function(){\n  return Math.atan2(this.x, this.y);\n};\n\n/**\n * Return angle in degrees.\n *\n * @return {Number}\n * @api public\n */\n\nVector.prototype.degrees = function(){\n  return this.angle() * 180 / Math.PI;\n};\n\n/**\n * Return the distance between vectors.\n *\n * @param {Vector} v\n * @return {Number}\n * @api public\n */\n\nVector.prototype.distance = function(v){\n  var x = this.x - v.x;\n  var y = this.y - v.y;\n  return Math.sqrt(x * x + y * y);\n};\n\n/**\n * Return the linear interpolation between vectors given a step point.\n *\n * @param {Vector} v\n * @param {Number} a\n * @return {Vector}\n * @api public\n */\n\nVector.prototype.interpolated = function(v, a){\n  return new Vector(this.x * (1 - a) + v.x * a, this.y * (1 - a) + v.y * a);\n};\n\n/**\n * Return the middle position between vectors.\n *\n * @param {Vector} v\n * @return {Vector}\n * @api public\n */\n\nVector.prototype.middle = function(v){\n  return this.interpolated(v, .5);\n};\n\n/**\n * Return \"(x, y)\" string representation.\n *\n * @return {String}\n * @api public\n */\n\nVector.prototype.toString = function(){\n  return '(' + this.x + ', ' + this.y + ')';\n};\n\n\n\n//@ sourceURL=component-vector/index.js"
-));
-require.register("component-emitter/index.js", Function("exports, require, module",
-"\n/**\n * Expose `Emitter`.\n */\n\nmodule.exports = Emitter;\n\n/**\n * Initialize a new `Emitter`.\n *\n * @api public\n */\n\nfunction Emitter(obj) {\n  if (obj) return mixin(obj);\n};\n\n/**\n * Mixin the emitter properties.\n *\n * @param {Object} obj\n * @return {Object}\n * @api private\n */\n\nfunction mixin(obj) {\n  for (var key in Emitter.prototype) {\n    obj[key] = Emitter.prototype[key];\n  }\n  return obj;\n}\n\n/**\n * Listen on the given `event` with `fn`.\n *\n * @param {String} event\n * @param {Function} fn\n * @return {Emitter}\n * @api public\n */\n\nEmitter.prototype.on = function(event, fn){\n  this._callbacks = this._callbacks || {};\n  (this._callbacks[event] = this._callbacks[event] || [])\n    .push(fn);\n  return this;\n};\n\n/**\n * Adds an `event` listener that will be invoked a single\n * time then automatically removed.\n *\n * @param {String} event\n * @param {Function} fn\n * @return {Emitter}\n * @api public\n */\n\nEmitter.prototype.once = function(event, fn){\n  var self = this;\n  this._callbacks = this._callbacks || {};\n\n  function on() {\n    self.off(event, on);\n    fn.apply(this, arguments);\n  }\n\n  fn._off = on;\n  this.on(event, on);\n  return this;\n};\n\n/**\n * Remove the given callback for `event` or all\n * registered callbacks.\n *\n * @param {String} event\n * @param {Function} fn\n * @return {Emitter}\n * @api public\n */\n\nEmitter.prototype.off =\nEmitter.prototype.removeListener =\nEmitter.prototype.removeAllListeners = function(event, fn){\n  this._callbacks = this._callbacks || {};\n\n  // all\n  if (0 == arguments.length) {\n    this._callbacks = {};\n    return this;\n  }\n\n  // specific event\n  var callbacks = this._callbacks[event];\n  if (!callbacks) return this;\n\n  // remove all handlers\n  if (1 == arguments.length) {\n    delete this._callbacks[event];\n    return this;\n  }\n\n  // remove specific handler\n  var i = callbacks.indexOf(fn._off || fn);\n  if (~i) callbacks.splice(i, 1);\n  return this;\n};\n\n/**\n * Emit `event` with the given args.\n *\n * @param {String} event\n * @param {Mixed} ...\n * @return {Emitter}\n */\n\nEmitter.prototype.emit = function(event){\n  this._callbacks = this._callbacks || {};\n  var args = [].slice.call(arguments, 1)\n    , callbacks = this._callbacks[event];\n\n  if (callbacks) {\n    callbacks = callbacks.slice(0);\n    for (var i = 0, len = callbacks.length; i < len; ++i) {\n      callbacks[i].apply(this, args);\n    }\n  }\n\n  return this;\n};\n\n/**\n * Return array of callbacks for `event`.\n *\n * @param {String} event\n * @return {Array}\n * @api public\n */\n\nEmitter.prototype.listeners = function(event){\n  this._callbacks = this._callbacks || {};\n  return this._callbacks[event] || [];\n};\n\n/**\n * Check if this emitter has `event` handlers.\n *\n * @param {String} event\n * @return {Boolean}\n * @api public\n */\n\nEmitter.prototype.hasListeners = function(event){\n  return !! this.listeners(event).length;\n};\n//@ sourceURL=component-emitter/index.js"
-));
-require.register("component-ease/index.js", Function("exports, require, module",
-"\nexports.linear = function(n){\n  return n;\n};\n\nexports.inQuad = function(n){\n  return n * n;\n};\n\nexports.outQuad = function(n){\n  return n * (2 - n);\n};\n\nexports.inOutQuad = function(n){\n  n *= 2;\n  if (n < 1) return 0.5 * n * n;\n  return - 0.5 * (--n * (n - 2) - 1);\n};\n\nexports.inCube = function(n){\n  return n * n * n;\n};\n\nexports.outCube = function(n){\n  return --n * n * n + 1;\n};\n\nexports.inOutCube = function(n){\n  n *= 2;\n  if (n < 1) return 0.5 * n * n * n;\n  return 0.5 * ((n -= 2 ) * n * n + 2);\n};\n\nexports.inQuart = function(n){\n  return n * n * n * n;\n};\n\nexports.outQuart = function(n){\n  return 1 - (--n * n * n * n);\n};\n\nexports.inOutQuart = function(n){\n  n *= 2;\n  if (n < 1) return 0.5 * n * n * n * n;\n  return -0.5 * ((n -= 2) * n * n * n - 2);\n};\n\nexports.inQuint = function(n){\n  return n * n * n * n * n;\n}\n\nexports.outQuint = function(n){\n  return --n * n * n * n * n + 1;\n}\n\nexports.inOutQuint = function(n){\n  n *= 2;\n  if (n < 1) return 0.5 * n * n * n * n * n;\n  return 0.5 * ((n -= 2) * n * n * n * n + 2);\n};\n\nexports.inSine = function(n){\n  return 1 - Math.cos(n * Math.PI / 2 );\n};\n\nexports.outSine = function(n){\n  return Math.sin(n * Math.PI / 2);\n};\n\nexports.inOutSine = function(n){\n  return .5 * (1 - Math.cos(Math.PI * n));\n};\n\nexports.inExpo = function(n){\n  return 0 == n ? 0 : Math.pow(1024, n - 1);\n};\n\nexports.outExpo = function(n){\n  return 1 == n ? n : 1 - Math.pow(2, -10 * n);\n};\n\nexports.inOutExpo = function(n){\n  if (0 == n) return 0;\n  if (1 == n) return 1;\n  if ((n *= 2) < 1) return .5 * Math.pow(1024, n - 1);\n  return .5 * (-Math.pow(2, -10 * (n - 1)) + 2);\n};\n\nexports.inCirc = function(n){\n  return 1 - Math.sqrt(1 - n * n);\n};\n\nexports.outCirc = function(n){\n  return Math.sqrt(1 - (--n * n));\n};\n\nexports.inOutCirc = function(n){\n  n *= 2\n  if (n < 1) return -0.5 * (Math.sqrt(1 - n * n) - 1);\n  return 0.5 * (Math.sqrt(1 - (n -= 2) * n) + 1);\n};\n\nexports.inBack = function(n){\n  var s = 1.70158;\n  return n * n * (( s + 1 ) * n - s);\n};\n\nexports.outBack = function(n){\n  var s = 1.70158;\n  return --n * n * ((s + 1) * n + s) + 1;\n};\n\nexports.inOutBack = function(n){\n  var s = 1.70158 * 1.525;\n  if ( ( n *= 2 ) < 1 ) return 0.5 * ( n * n * ( ( s + 1 ) * n - s ) );\n  return 0.5 * ( ( n -= 2 ) * n * ( ( s + 1 ) * n + s ) + 2 );\n};\n\nexports.inBounce = function(n){\n  return 1 - exports.outBounce(1 - n);\n};\n\nexports.outBounce = function(n){\n  if ( n < ( 1 / 2.75 ) ) {\n    return 7.5625 * n * n;\n  } else if ( n < ( 2 / 2.75 ) ) {\n    return 7.5625 * ( n -= ( 1.5 / 2.75 ) ) * n + 0.75;\n  } else if ( n < ( 2.5 / 2.75 ) ) {\n    return 7.5625 * ( n -= ( 2.25 / 2.75 ) ) * n + 0.9375;\n  } else {\n    return 7.5625 * ( n -= ( 2.625 / 2.75 ) ) * n + 0.984375;\n  }\n};\n\nexports.inOutBounce = function(n){\n  if (n < .5) return exports.inBounce(n * 2) * .5;\n  return exports.outBounce(n * 2 - 1) * .5 + .5;\n};\n\n// aliases\n\nexports['in-quad'] = exports.inQuad;\nexports['out-quad'] = exports.outQuad;\nexports['in-out-quad'] = exports.inOutQuad;\nexports['in-cube'] = exports.inCube;\nexports['out-cube'] = exports.outCube;\nexports['in-out-cube'] = exports.inOutCube;\nexports['in-quart'] = exports.inQuart;\nexports['out-quart'] = exports.outQuart;\nexports['in-out-quart'] = exports.inOutQuart;\nexports['in-quint'] = exports.inQuint;\nexports['out-quint'] = exports.outQuint;\nexports['in-out-quint'] = exports.inOutQuint;\nexports['in-sine'] = exports.inSine;\nexports['out-sine'] = exports.outSine;\nexports['in-out-sine'] = exports.inOutSine;\nexports['in-expo'] = exports.inExpo;\nexports['out-expo'] = exports.outExpo;\nexports['in-out-expo'] = exports.inOutExpo;\nexports['in-circ'] = exports.inCirc;\nexports['out-circ'] = exports.outCirc;\nexports['in-out-circ'] = exports.inOutCirc;\nexports['in-back'] = exports.inBack;\nexports['out-back'] = exports.outBack;\nexports['in-out-back'] = exports.inOutBack;\nexports['in-bounce'] = exports.inBounce;\nexports['out-bounce'] = exports.outBounce;\nexports['in-out-bounce'] = exports.inOutBounce;\n//@ sourceURL=component-ease/index.js"
-));
-require.register("component-tween/index.js", Function("exports, require, module",
-"\n/**\n * Module dependencies.\n */\n\nvar Emitter = require('emitter')\n  , ease = require('ease');\n\n/**\n * Expose `Tween`.\n */\n\nmodule.exports = Tween;\n\n/**\n * Initialize a new `Tween` with `obj`.\n *\n * @param {Object|Array} obj\n * @api public\n */\n\nfunction Tween(obj) {\n  if (!(this instanceof Tween)) return new Tween(obj);\n  this._from = obj;\n  this.ease('linear');\n  this.duration(500);\n}\n\n/**\n * Mixin emitter.\n */\n\nEmitter(Tween.prototype);\n\n/**\n * Reset the tween.\n *\n * @api public\n */\n\nTween.prototype.reset = function(){\n  this.isArray = Array.isArray(this._from);\n  this._curr = clone(this._from);\n  this._done = false;\n  this._start = Date.now();\n  return this;\n};\n\n/**\n * Tween to `obj` and reset internal state.\n *\n *    tween.to({ x: 50, y: 100 })\n *\n * @param {Object|Array} obj\n * @return {Tween} self\n * @api public\n */\n\nTween.prototype.to = function(obj){\n  this.reset();\n  this._to = obj;\n  return this;\n};\n\n/**\n * Set duration to `ms` [500].\n *\n * @param {Number} ms\n * @return {Tween} self\n * @api public\n */\n\nTween.prototype.duration = function(ms){\n  this._duration = ms;\n  return this;\n};\n\n/**\n * Set easing function to `fn`.\n *\n *    tween.ease('in-out-sine')\n *\n * @param {String|Function} fn\n * @return {Tween}\n * @api public\n */\n\nTween.prototype.ease = function(fn){\n  fn = 'function' == typeof fn ? fn : ease[fn];\n  if (!fn) throw new TypeError('invalid easing function');\n  this._ease = fn;\n  return this;\n};\n\n/**\n * Stop the tween and immediately emit \"stop\" and \"end\".\n *\n * @return {Tween}\n * @api public\n */\n\nTween.prototype.stop = function(){\n  this.stopped = true;\n  this._done = true;\n  this.emit('stop');\n  this.emit('end');\n  return this;\n};\n\n/**\n * Perform a step.\n *\n * @return {Tween} self\n * @api private\n */\n\nTween.prototype.step = function(){\n  if (this._done) return;\n\n  // duration\n  var duration = this._duration;\n  var now = Date.now();\n  var delta = now - this._start;\n  var done = delta >= duration;\n\n  // complete\n  if (done) {\n    this._from = this._to;\n    this._update(this._to);\n    this._done = true;\n    this.emit('end');\n    return this;\n  }\n\n  // tween\n  var from = this._from;\n  var to = this._to;\n  var curr = this._curr;\n  var fn = this._ease;\n  var p = (now - this._start) / duration;\n  var n = fn(p);\n\n  // array\n  if (this.isArray) {\n    for (var i = 0; i < from.length; ++i) {\n      curr[i] = from[i] + (to[i] - from[i]) * n;\n    }\n\n    this._update(curr);\n    return this;\n  }\n\n  // objech\n  for (var k in from) {\n    curr[k] = from[k] + (to[k] - from[k]) * n;\n  }\n\n  this._update(curr);\n  return this;\n};\n\n/**\n * Set update function to `fn` or\n * when no argument is given this performs\n * a \"step\".\n *\n * @param {Function} fn\n * @return {Tween} self\n * @api public\n */\n\nTween.prototype.update = function(fn){\n  if (0 == arguments.length) return this.step();\n  this._update = fn;\n  return this;\n};\n\n/**\n * Clone `obj`.\n *\n * @api private\n */\n\nfunction clone(obj) {\n  if (Array.isArray(obj)) return obj.slice();\n  var ret = {};\n  for (var key in obj) ret[key] = obj[key];\n  return ret;\n}\n//@ sourceURL=component-tween/index.js"
-));
-require.register("visionmedia-debug/index.js", Function("exports, require, module",
-"if ('undefined' == typeof window) {\n  module.exports = require('./lib/debug');\n} else {\n  module.exports = require('./debug');\n}\n//@ sourceURL=visionmedia-debug/index.js"
-));
-require.register("visionmedia-debug/debug.js", Function("exports, require, module",
-"\n/**\n * Expose `debug()` as the module.\n */\n\nmodule.exports = debug;\n\n/**\n * Create a debugger with the given `name`.\n *\n * @param {String} name\n * @return {Type}\n * @api public\n */\n\nfunction debug(name) {\n  if (!debug.enabled(name)) return function(){};\n\n  return function(fmt){\n    fmt = coerce(fmt);\n\n    var curr = new Date;\n    var ms = curr - (debug[name] || curr);\n    debug[name] = curr;\n\n    fmt = name\n      + ' '\n      + fmt\n      + ' +' + debug.humanize(ms);\n\n    // This hackery is required for IE8\n    // where `console.log` doesn't have 'apply'\n    window.console\n      && console.log\n      && Function.prototype.apply.call(console.log, console, arguments);\n  }\n}\n\n/**\n * The currently active debug mode names.\n */\n\ndebug.names = [];\ndebug.skips = [];\n\n/**\n * Enables a debug mode by name. This can include modes\n * separated by a colon and wildcards.\n *\n * @param {String} name\n * @api public\n */\n\ndebug.enable = function(name) {\n  try {\n    localStorage.debug = name;\n  } catch(e){}\n\n  var split = (name || '').split(/[\\s,]+/)\n    , len = split.length;\n\n  for (var i = 0; i < len; i++) {\n    name = split[i].replace('*', '.*?');\n    if (name[0] === '-') {\n      debug.skips.push(new RegExp('^' + name.substr(1) + '$'));\n    }\n    else {\n      debug.names.push(new RegExp('^' + name + '$'));\n    }\n  }\n};\n\n/**\n * Disable debug output.\n *\n * @api public\n */\n\ndebug.disable = function(){\n  debug.enable('');\n};\n\n/**\n * Humanize the given `ms`.\n *\n * @param {Number} m\n * @return {String}\n * @api private\n */\n\ndebug.humanize = function(ms) {\n  var sec = 1000\n    , min = 60 * 1000\n    , hour = 60 * min;\n\n  if (ms >= hour) return (ms / hour).toFixed(1) + 'h';\n  if (ms >= min) return (ms / min).toFixed(1) + 'm';\n  if (ms >= sec) return (ms / sec | 0) + 's';\n  return ms + 'ms';\n};\n\n/**\n * Returns true if the given mode name is enabled, false otherwise.\n *\n * @param {String} name\n * @return {Boolean}\n * @api public\n */\n\ndebug.enabled = function(name) {\n  for (var i = 0, len = debug.skips.length; i < len; i++) {\n    if (debug.skips[i].test(name)) {\n      return false;\n    }\n  }\n  for (var i = 0, len = debug.names.length; i < len; i++) {\n    if (debug.names[i].test(name)) {\n      return true;\n    }\n  }\n  return false;\n};\n\n/**\n * Coerce `val`.\n */\n\nfunction coerce(val) {\n  if (val instanceof Error) return val.stack || val.message;\n  return val;\n}\n\n// persist\n\nif (window.localStorage) debug.enable(localStorage.debug);\n//@ sourceURL=visionmedia-debug/debug.js"
-));
-require.register("component-autoscale-canvas/index.js", Function("exports, require, module",
-"\n/**\n * Retina-enable the given `canvas`.\n *\n * @param {Canvas} canvas\n * @return {Canvas}\n * @api public\n */\n\nmodule.exports = function(canvas){\n  var ctx = canvas.getContext('2d');\n  var ratio = window.devicePixelRatio || 1;\n  if (1 != ratio) {\n    canvas.style.width = canvas.width + 'px';\n    canvas.style.height = canvas.height + 'px';\n    canvas.width *= ratio;\n    canvas.height *= ratio;\n    ctx.scale(ratio, ratio);\n  }\n  return canvas;\n};//@ sourceURL=component-autoscale-canvas/index.js"
-));
-require.register("mnmly-sketch.js/js/sketch.js", Function("exports, require, module",
-"\n/* Copyright (C) 2013 Justin Windle, http://soulwire.co.uk */\n\nvar Sketch = (function() {\n\n    \"use strict\";\n\n    /*\n    ----------------------------------------------------------------------\n\n        Config\n\n    ----------------------------------------------------------------------\n    */\n\n    var MATH_PROPS = 'E LN10 LN2 LOG2E LOG10E PI SQRT1_2 SQRT2 abs acos asin atan ceil cos exp floor log round sin sqrt tan atan2 pow max min'.split( ' ' );\n    var HAS_SKETCH = '__hasSketch';\n    var M = Math;\n\n    var CANVAS = 'canvas';\n    var WEBGL = 'webgl';\n    var DOM = 'dom';\n\n    var doc = document;\n    var win = window;\n\n    var instances = [];\n\n    var defaults = {\n\n        fullscreen: true,\n        autostart: true,\n        autoclear: true,\n        autopause: true,\n        container: doc.body,\n        interval: 1,\n        globals: true,\n        retina: false,\n        type: CANVAS\n    };\n\n    var keyMap = {\n\n         8: 'BACKSPACE',\n         9: 'TAB',\n        13: 'ENTER',\n        16: 'SHIFT',\n        27: 'ESCAPE',\n        32: 'SPACE',\n        37: 'LEFT',\n        38: 'UP',\n        39: 'RIGHT',\n        40: 'DOWN'\n    };\n\n    /*\n    ----------------------------------------------------------------------\n\n        Utilities\n\n    ----------------------------------------------------------------------\n    */\n\n    function isArray( object ) {\n\n        return Object.prototype.toString.call( object ) == '[object Array]';\n    }\n\n    function isFunction( object ) {\n\n        return typeof object == 'function';\n    }\n\n    function isNumber( object ) {\n\n        return typeof object == 'number';\n    }\n\n    function isString( object ) {\n\n        return typeof object == 'string';\n    }\n\n    function keyName( code ) {\n\n        return keyMap[ code ] || String.fromCharCode( code );\n    }\n\n    function extend( target, source, overwrite ) {\n\n        for ( var key in source )\n\n            if ( overwrite || !target.hasOwnProperty( key ) )\n\n                target[ key ] = source[ key ];\n\n        return target;\n    }\n\n    function proxy( method, context ) {\n\n        return function() {\n\n            method.apply( context, arguments );\n        };\n    }\n\n    function clone( target ) {\n\n        var object = {};\n\n        for ( var key in target ) {\n\n            if ( isFunction( target[ key ] ) )\n\n                object[ key ] = proxy( target[ key ], target );\n\n            else\n\n                object[ key ] = target[ key ];\n        }\n\n        return object;\n    }\n\n    /*\n    ----------------------------------------------------------------------\n\n        Constructor\n\n    ----------------------------------------------------------------------\n    */\n\n    function constructor( context ) {\n\n        var request, handler, target, parent, bounds, index, suffix, clock, node, copy, type, key, val, min, max;\n\n        var counter = 0;\n        var touches = [];\n        var setup = false;\n        var ratio = win.devicePixelRatio;\n        var isDiv = context.type == DOM;\n        var is2D = context.type == CANVAS;\n\n        var mouse = {\n            x:  0.0, y:  0.0,\n            ox: 0.0, oy: 0.0,\n            dx: 0.0, dy: 0.0\n        };\n\n        var eventMap = [\n\n            context.element,\n\n                pointer, 'mousedown', 'touchstart',\n                pointer, 'mousemove', 'touchmove',\n                pointer, 'mouseup', 'touchend',\n                pointer, 'click',\n\n            doc,\n\n                keypress, 'keydown', 'keyup',\n\n            win,\n\n                active, 'focus', 'blur',\n                resize, 'resize'\n        ];\n\n        var keys = {}; for ( key in keyMap ) keys[ keyMap[ key ] ] = false;\n\n        function trigger( method ) {\n\n            if ( isFunction( method ) )\n\n                method.apply( context, [].splice.call( arguments, 1 ) );\n        }\n\n        function bind( on ) {\n\n            for ( index = 0; index < eventMap.length; index++ ) {\n\n                node = eventMap[ index ];\n\n                if ( isString( node ) )\n\n                    target[ ( on ? 'add' : 'remove' ) + 'EventListener' ].call( target, node, handler, false );\n\n                else if ( isFunction( node ) )\n\n                    handler = node;\n\n                else target = node;\n            }\n        }\n\n        function update() {\n\n            cAF( request );\n            request = rAF( update );\n\n            if ( !setup ) {\n\n                trigger( context.setup );\n                setup = isFunction( context.setup );\n                trigger( context.resize );\n            }\n\n            if ( context.running && !counter ) {\n\n                context.dt = ( clock = +new Date() ) - context.now;\n                context.millis += context.dt;\n                context.now = clock;\n\n                trigger( context.update );\n\n                if ( context.autoclear && is2D )\n\n                    context.clear();\n\n                trigger( context.draw );\n            }\n\n            counter = ++counter % context.interval;\n        }\n\n        function resize() {\n\n            target = isDiv ? context.style : context.canvas;\n            suffix = isDiv ? 'px' : '';\n\n            if ( context.fullscreen ) {\n\n                context.height = win.innerHeight;\n                context.width = win.innerWidth;\n            }\n\n            target.height = context.height + suffix;\n            target.width = context.width + suffix;\n\n            if ( context.retina && is2D && ratio ) {\n\n                target.height = context.height * ratio;\n                target.width = context.width * ratio;\n\n                target.style.height = context.height + 'px';\n                target.style.width = context.width + 'px';\n\n                context.scale( ratio, ratio );\n            }\n\n            if ( setup ) trigger( context.resize );\n        }\n\n        function align( touch, target ) {\n\n            bounds = target.getBoundingClientRect();\n\n            touch.x = touch.pageX - bounds.left - win.scrollX;\n            touch.y = touch.pageY - bounds.top - win.scrollY;\n\n            return touch;\n        }\n\n        function augment( touch, target ) {\n\n            align( touch, context.element );\n\n            target = target || {};\n\n            target.ox = target.x || touch.x;\n            target.oy = target.y || touch.y;\n\n            target.x = touch.x;\n            target.y = touch.y;\n\n            target.dx = target.x - target.ox;\n            target.dy = target.y - target.oy;\n\n            return target;\n        }\n\n        function process( event ) {\n\n            event.preventDefault();\n\n            copy = clone( event );\n            copy.originalEvent = event;\n\n            if ( copy.touches ) {\n\n                touches.length = copy.touches.length;\n\n                for ( index = 0; index < copy.touches.length; index++ )\n\n                    touches[ index ] = augment( copy.touches[ index ], touches[ index ] );\n\n            } else {\n\n                touches.length = 0;\n                touches[0] = augment( copy, mouse );\n            }\n\n            extend( mouse, touches[0], true );\n\n            return copy;\n        }\n\n        function pointer( event ) {\n\n            event = process( event );\n\n            min = ( max = eventMap.indexOf( type = event.type ) ) - 1;\n\n            context.dragging =\n\n                /down|start/.test( type ) ? true :\n\n                /up|end/.test( type ) ? false :\n\n                context.dragging;\n\n            while( min )\n\n                isString( eventMap[ min ] ) ?\n\n                    trigger( context[ eventMap[ min-- ] ], event ) :\n\n                isString( eventMap[ max ] ) ?\n\n                    trigger( context[ eventMap[ max++ ] ], event ) :\n\n                min = 0;\n        }\n\n        function keypress( event ) {\n\n            key = event.keyCode;\n            val = event.type == 'keyup';\n            keys[ key ] = keys[ keyName( key ) ] = !val;\n\n            trigger( context[ event.type ], event );\n        }\n\n        function active( event ) {\n\n            if ( context.autopause )\n\n                ( event.type == 'blur' ? stop : start )();\n\n            trigger( context[ event.type ], event );\n        }\n\n        // Public API\n\n        function start() {\n\n            context.now = +new Date();\n            context.running = true;\n        }\n\n        function stop() {\n\n            context.running = false;\n        }\n\n        function toggle() {\n\n            ( context.running ? stop : start )();\n        }\n\n        function clear() {\n\n            if ( is2D )\n\n                context.clearRect( 0, 0, context.width, context.height );\n        }\n\n        function destroy() {\n\n            parent = context.element.parentNode;\n            index = instances.indexOf( context );\n\n            if ( parent ) parent.removeChild( context.element );\n            if ( ~index ) instances.splice( index, 1 );\n\n            bind( false );\n            stop();\n        }\n\n        extend( context, {\n\n            touches: touches,\n            mouse: mouse,\n            keys: keys,\n\n            dragging: false,\n            running: false,\n            millis: 0,\n            now: NaN,\n            dt: NaN,\n\n            destroy: destroy,\n            toggle: toggle,\n            clear: clear,\n            start: start,\n            stop: stop\n        });\n\n        instances.push( context );\n\n        return ( context.autostart && start(), bind( true ), resize(), update(), context );\n    }\n\n    /*\n    ----------------------------------------------------------------------\n\n        Global API\n\n    ----------------------------------------------------------------------\n    */\n\n    var element, context, Sketch = {\n\n        CANVAS: CANVAS,\n        WEB_GL: WEBGL,\n        WEBGL: WEBGL,\n        DOM: DOM,\n\n        instances: instances,\n\n        install: function( context ) {\n\n            if ( !context[ HAS_SKETCH ] ) {\n\n                for ( var i = 0; i < MATH_PROPS.length; i++ )\n\n                    context[ MATH_PROPS[i] ] = M[ MATH_PROPS[i] ];\n\n                extend( context, {\n\n                    TWO_PI: M.PI * 2,\n                    HALF_PI: M.PI / 2,\n                    QUATER_PI: M.PI / 4,\n\n                    random: function( min, max ) {\n\n                        if ( isArray( min ) )\n\n                            return min[ ~~( M.random() * min.length ) ];\n\n                        if ( !isNumber( max ) )\n\n                            max = min || 1, min = 0;\n\n                        return min + M.random() * ( max - min );\n                    },\n\n                    lerp: function( min, max, amount ) {\n\n                        return min + amount * ( max - min );\n                    },\n\n                    map: function( num, minA, maxA, minB, maxB ) {\n\n                        return ( num - minA ) / ( maxA - minA ) * ( maxB - minB ) + minB;\n                    }\n                });\n\n                context[ HAS_SKETCH ] = true;\n            }\n        },\n\n        create: function( options ) {\n\n            options = extend( options || {}, defaults );\n\n            if ( options.globals ) Sketch.install( self );\n\n            element = options.element = options.element || doc.createElement( options.type === DOM ? 'div' : 'canvas' );\n\n            context = options.context = options.context || (function() {\n\n                switch( options.type ) {\n\n                    case CANVAS:\n\n                        return element.getContext( '2d', options );\n\n                    case WEBGL:\n\n                        return element.getContext( 'webgl', options ) || element.getContext( 'experimental-webgl', options );\n\n                    case DOM:\n\n                        return element.canvas = element;\n                }\n\n            })();\n\n            options.container.appendChild( element );\n\n            return Sketch.augment( context, options );\n        },\n\n        augment: function( context, options ) {\n\n            options = extend( options || {}, defaults );\n\n            options.element = context.canvas || context;\n            options.element.className += ' sketch';\n\n            extend( context, options, true );\n\n            return constructor( context );\n        }\n    };\n\n    /*\n    ----------------------------------------------------------------------\n\n        Shims\n\n    ----------------------------------------------------------------------\n    */\n\n    var vendors = [ 'ms', 'moz', 'webkit', 'o' ];\n    var scope = self;\n    var then = 0;\n\n    var a = 'AnimationFrame';\n    var b = 'request' + a;\n    var c = 'cancel' + a;\n\n    var rAF = scope[ b ];\n    var cAF = scope[ c ];\n\n    for ( var i = 0; i < vendors.length && !rAF; i++ ) {\n\n        rAF = scope[ vendors[ i ] + 'Request' + a ];\n        cAF = scope[ vendors[ i ] + 'Cancel' + b ];\n    }\n\n    scope[ b ] = rAF = rAF || function( callback ) {\n\n        var now = +new Date();\n        var dt = M.max( 0, 16 - ( now - then ) );\n        var id = setTimeout( function() {\n            callback( now + dt );\n        }, dt );\n\n        then = now + dt;\n        return id;\n    };\n\n    scope[ c ] = cAF = cAF || function( id ) {\n        clearTimeout( id );\n    };\n\n    /*\n    ----------------------------------------------------------------------\n\n        Output\n\n    ----------------------------------------------------------------------\n    */\n\n    return Sketch;\n\n})();\n\nmodule.exports = Sketch;\n\n//@ sourceURL=mnmly-sketch.js/js/sketch.js"
-));
-require.register("record/index.js", Function("exports, require, module",
-"module.exports = Record;\n\nfunction Record( app ) {\n  this.app = app;\n  this._lines = [];\n}\n\nRecord.prototype.add = function( action ) {\n  var string = this.app.frameCount + \" \" + action;\n  this_lines.push( string );\n};\n\nRecord.prototype.finalize = function() {\n  this_endTime = new Date();\n};\n//@ sourceURL=record/index.js"
-));
-require.register("component-inherit/index.js", Function("exports, require, module",
-"\nmodule.exports = function(a, b){\n  var fn = function(){};\n  fn.prototype = b.prototype;\n  a.prototype = new fn;\n  a.prototype.constructor = a;\n};//@ sourceURL=component-inherit/index.js"
-));
-require.register("component-color/index.js", Function("exports, require, module",
-"\nexports.RGBA = require('./RGBA');\nexports.HSLA = require('./HSLA');\nexports.rgba = exports.RGBA;\nexports.hsla = exports.HSLA;//@ sourceURL=component-color/index.js"
-));
-require.register("component-color/RGBA.js", Function("exports, require, module",
-"\n/**\n * Module dependencies.\n */\n\nvar HSLA = require('./HSLA');\n\n/**\n * Expose `HSLA`.\n */\n\nexports = module.exports = RGBA;\n\n/**\n * Initialize a new `RGBA` with the given r,g,b,a component values.\n *\n * @param {Number} r\n * @param {Number} g\n * @param {Number} b\n * @param {Number} a\n * @api public\n */\n\nfunction RGBA(r,g,b,a){\n  if (!(this instanceof RGBA)) return new RGBA(r,g,b,a);\n  this.r = clamp(r);\n  this.g = clamp(g);\n  this.b = clamp(b);\n  this.a = clampAlpha(a);\n  this.rgba = this;\n}\n\n/**\n * Convert to RGBA (return self).\n *\n * @return {RGBA}\n * @api public\n */\n\nRGBA.prototype.toRGBA = function(){\n  return this;\n};\n\n/**\n * Convert to HSLA.\n *\n * @return {HSLA}\n * @api public\n */\n\nRGBA.prototype.toHSLA = function(){\n  return HSLA.fromRGBA(this);\n};\n\n/**\n * Return #nnnnnn, #nnn, or rgba(n,n,n,n) string representation of the color.\n *\n * @return {String}\n * @api public\n */\n\nRGBA.prototype.toString = function(){\n  if (1 == this.a) {\n    var r = pad(this.r);\n    var g = pad(this.g);\n    var b = pad(this.b);\n\n    // Compress\n    if (r[0] == r[1] && g[0] == g[1] && b[0] == b[1]) {\n      return '#' + r[0] + g[0] + b[0];\n    } else {\n      return '#' + r + g + b;\n    }\n  } else {\n    return 'rgba('\n      + this.r + ','\n      + this.g + ','\n      + this.b + ','\n      + (+this.a.toFixed(3)) + ')';\n  }\n};\n\n/**\n * Return a `RGBA` from the given `hsla`.\n *\n * @param {HSLA} hsla\n * @return {RGBA}\n * @api public\n */\n\nexports.fromHSLA = function(hsla){\n  var h = hsla.h / 360\n    , s = hsla.s / 100\n    , l = hsla.l / 100\n    , a = hsla.a;\n\n  var m2 = l <= .5 ? l * (s + 1) : l + s - l * s\n    , m1 = l * 2 - m2;\n\n  var r = hue(h + 1/3) * 0xff\n    , g = hue(h) * 0xff\n    , b = hue(h - 1/3) * 0xff;\n\n  function hue(h) {\n    if (h < 0) ++h;\n    if (h > 1) --h;\n    if (h * 6 < 1) return m1 + (m2 - m1) * h * 6;\n    if (h * 2 < 1) return m2;\n    if (h * 3 < 2) return m1 + (m2 - m1) * (2/3 - h) * 6;\n    return m1;\n  }\n  \n  return new RGBA(r,g,b,a);\n};\n\n/**\n * Clamp `n` >= 0 and <= 255.\n *\n * @param {Number} n\n * @return {Number}\n * @api private\n */\n\nfunction clamp(n) {\n  return Math.max(0, Math.min(n.toFixed(0), 255));\n}\n\n/**\n * Clamp alpha `n` >= 0 and <= 1.\n *\n * @param {Number} n\n * @return {Number}\n * @api private\n */\n\nfunction clampAlpha(n) {\n  return Math.max(0, Math.min(n, 1));\n}\n\n/**\n * Pad `n` hex representation.\n *\n * @param {Number} n\n * @return {String}\n * @api public\n */\n\nfunction pad(n) {\n  return n < 16\n    ? '0' + n.toString(16)\n    : n.toString(16);\n}//@ sourceURL=component-color/RGBA.js"
-));
-require.register("component-color/HSLA.js", Function("exports, require, module",
-"\n/**\n * Module dependencies.\n */\n\nvar RGBA = require('./RGBA');\n\n/**\n * Expose `HSLA`.\n */\n\nexports = module.exports = HSLA;\n\n/**\n * Initialize a new `HSLA` with the given h,s,l,a component values.\n *\n * @param {Number} h\n * @param {Number} s\n * @param {Number} l\n * @param {Number} a\n * @api public\n */\n\nfunction HSLA(h,s,l,a){\n  if (!(this instanceof HSLA)) return new HSLA(h,s,l,a);\n  this.h = clampDegrees(h);\n  this.s = clampPercentage(s);\n  this.l = clampPercentage(l);\n  this.a = clampAlpha(a);\n  this.hsla = this;\n}\n\n/**\n * Convert to HSLA (return self).\n *\n * @return {HSLA}\n * @api public\n */\n\nHSLA.prototype.toHSLA = function(){\n  return this;\n};\n\n/**\n * Convert to RGBA.\n *\n * @return {RGBA}\n * @api public\n */\n\nHSLA.prototype.toRGBA = function(){\n  return RGBA.fromHSLA(this);\n};\n\n/**\n * Return hsla(n,n,n,n).\n *\n * @return {String}\n * @api public\n */\n\nHSLA.prototype.toString = function(){\n  return 'hsla('\n    + this.h + ','\n    + this.s.toFixed(0) + ','\n    + this.l.toFixed(0) + ','\n    + this.a + ')';\n};\n\n/**\n * Return `HSLA` representation of the given `color`.\n *\n * @param {RGBA} color\n * @return {HSLA}\n * @api public\n */\n\nexports.fromRGBA = function(rgba){\n  var r = rgba.r / 255\n    , g = rgba.g / 255\n    , b = rgba.b / 255\n    , a = rgba.a;\n\n  var min = Math.min(r,g,b)\n    , max = Math.max(r,g,b)\n    , l = (max + min) / 2\n    , d = max - min\n    , h, s;\n\n  switch (max) {\n    case min: h = 0; break;\n    case r: h = 60 * (g-b) / d; break;\n    case g: h = 60 * (b-r) / d + 120; break;\n    case b: h = 60 * (r-g) / d + 240; break;\n  }\n\n  if (max == min) {\n    s = 0;\n  } else if (l < .5) {\n    s = d / (2 * l);\n  } else {\n    s = d / (2 - 2 * l);\n  }\n\n  h %= 360;\n  s *= 100;\n  l *= 100;\n\n  return new HSLA(h,s,l,a);\n};\n\n/**\n * Adjust lightness by `percent`.\n *\n * @param {Number} percent\n * @return {HSLA}\n * @api public\n */\n\nHSLA.prototype.adjustLightness = function(percent){\n  this.l = clampPercentage(this.l + this.l * (percent / 100));\n  return this;\n};\n\n/**\n * Adjust hue by `deg`.\n *\n * @param {Number} deg\n * @return {HSLA}\n * @api public\n */\n\nHSLA.prototype.adjustHue = function(deg){\n  this.h = clampDegrees(this.h + deg);\n  return this;\n};\n\n/**\n * Clamp degree `n` >= 0 and <= 360.\n *\n * @param {Number} n\n * @return {Number}\n * @api private\n */\n\nfunction clampDegrees(n) {\n  n = n % 360;\n  return n >= 0 ? n : 360 + n;\n}\n\n/**\n * Clamp percentage `n` >= 0 and <= 100.\n *\n * @param {Number} n\n * @return {Number}\n * @api private\n */\n\nfunction clampPercentage(n) {\n  return Math.max(0, Math.min(n, 100));\n}\n\n/**\n * Clamp alpha `n` >= 0 and <= 1.\n *\n * @param {Number} n\n * @return {Number}\n * @api private\n */\n\nfunction clampAlpha(n) {\n  return Math.max(0, Math.min(n, 1));\n}\n//@ sourceURL=component-color/HSLA.js"
-));
-require.register("neuron/index.js", Function("exports, require, module",
-"var Color = require('color');\n\nmodule.exports = Neuron;\n\nfunction Neuron( app ){\n  this._app = app;\n  this._tweens = [];\n  this.pigment = Color.RGBA(0, 0, 0, 1);\n  this.duration = 0.15;\n  this.delay = 0;\n  this.easing = 'out-circ';\n  this.playing = false;\n  this._removeTween = this._removeTween.bind( this );\n}\n\nNeuron.prototype.setColor = function(color ) {\n  this.pigment = color;\n};\n\nNeuron.prototype.setDuration = function(duration) {\n  this.duration = duration;\n};\n\nNeuron.prototype.setDelay = function(delay) {\n  this.delay = delay;\n};\n\nNeuron.prototype.setEasing = function(easing) {\n  this.easing = easing;\n};\n\nNeuron.prototype.getColor = function() {\n  return this.pigment;\n};\n\nNeuron.prototype.getDuration = function() {\n  return this.duration;\n};\n\nNeuron.prototype.getDelay = function() {\n  return this.getDelay;\n};\n\nNeuron.prototype.getEasing = function() {\n  return this.easing;\n};\n\nNeuron.prototype.getStageSize = function() {\n  return {\n      width: 1000\n    , height: 1000\n  }\n};\n\nNeuron.prototype.update = function() {\n\n  this._tweens.forEach( function( tween ){\n    tween.update();\n  } );\n\n\n};\n\nNeuron.prototype._removeTween = function( tween ) {\n  var index = this._tweens.indexOf( tween );\n  this._tweens.splice( index, 1 );\n};\n//@ sourceURL=neuron/index.js"
-));
-require.register("moon/index.js", Function("exports, require, module",
-"var inherit = require( 'inherit' )\n  , Tween = require( 'tween' )\n  , Vector = require( 'vector' )\n  , Neuron = require( 'neuron' );\n\nmodule.exports = Moon;\n\nfunction Moon( app, duration ){\n  \n  Neuron.apply( this, arguments );\n\n  this._amount = 40;\n\n  this.x = this._app.width / 2;\n  this.y = this._app.height / 2;\n  this.r = this._app.height / 3;\n  this._slave = 0;\n  this._startAngle = 0.0;\n  this.setDuration( duration );\n  this.initialize();\n}\n\ninherit( Moon, Neuron );\n\nMoon.prototype.setAngle = function( angle ) {\n\n  this._startAngle = angle;\n\n};\n\n\nMoon.prototype.initialize = function( ) {\n\n  if ( this.playing ) return;\n  \n  this.__points = new Array( this._amount );\n  this._points = new Array( this._amount );\n  this.reset();\n\n};\n\nMoon.prototype.play = function() {\n\n  if ( this.playing ) return;\n\n  this.animate_in();\n  \n};\n\n\nMoon.prototype.animate_in = function( ) {\n  \n  var self = this;\n\n  this.playing = true;\n\n  var update = function( pos ) {\n    return function(o){\n      pos.x = o.x;\n      pos.y = o.y;\n    }\n  }\n\n  for ( var i = 0; i < this._amount; i += 1 ) {\n    var pos = this._points[i]\n      , ref = this.__points[i]\n      , from = { x: pos.x, y: pos.y }\n      , to = { x: ref.x, y: ref.y }\n      , tween = Tween( from )\n              .to( to )\n              .duration( this.duration )\n              .ease( this.easing )\n              .update( update(pos) )\n              .on( 'end', function() {\n                self._removeTween( this );\n              } );\n\n    this._tweens.push( tween );\n  }\n  \n  var lastTween = Tween({ slave: this._slave })\n    .to( { slave: 0 } )\n    .duration( this.duration )\n    .ease( this.easing )\n    .update( function(o) {\n      self._slave = o.slave;\n    } )\n    .on( 'end', function(){\n      self._removeTween( this );\n      self.animate_out();\n    })\n\n  this._tweens.push( lastTween );\n};\n\n\nMoon.prototype.animate_out = function() {\n  \n  var self = this;\n\n  this.playing = true;\n\n  var update = function( pos ) {\n    return function(o){\n      pos.x = o.x;\n      pos.y = o.y;\n    }\n  }\n  \n  var l = ceil( this._amount / 2 )\n  for ( var i = 0; i < l; i += 1 ) {\n    var index = 0 === i ? 0 : this._amount - i\n    var pos = this._points[i]\n      , ref = this.__points[index]\n      , from = { x: pos.x, y: pos.y }\n      , to = { x: ref.x, y: ref.y }\n      , tween = Tween( from )\n              .to( to )\n              .duration( this.duration )\n              .ease( this.easing )\n              .update( update(pos) )\n              .on( 'end', function() {\n                self._removeTween( this );\n              } );\n\n    this._tweens.push( tween );\n  }\n  \n  var lastTween = Tween({ slave: this._slave })\n    .to( { slave: 0 } )\n    .duration( this.duration )\n    .ease( this.easing )\n    .update( function(o) {\n      self._slave = o.slave;\n    } )\n    .on( 'end', function(){\n      self._removeTween( this );\n      self.animate_end();\n    })\n\n  this._tweens.push( lastTween );\n};\n\n\nMoon.prototype.animate_end = function() {\n    \n  this.playing = false;\n  this.reset();\n\n};\n\n\nMoon.prototype.reset = function() {\n  \n  for ( var i = 0; i < this._amount; i += 1 ) {\n\n    var theta = ( i / this._amount ) * TWO_PI + this._startAngle\n      , xpos = this.r * cos( theta ) + this.x\n      , ypos = this.r * sin( theta ) + this.y;\n\n    this.__points[i] = new Vector( xpos, ypos );\n    if ( i <= this._amount / 2 ) {\n      var ref = this.__points[i];\n      this._points[i] = new Vector( ref.x, ref.y );\n    } else {\n      var ref = this.__points[this._amount - i];\n      this._points[i] = new Vector( ref.x, ref.y );\n    }\n  }\n};\n\n\nMoon.prototype.render = function() {\n  \n  if ( !this.playing ) return;\n\n  // noStroke\n  this._app.fillStyle = this.pigment.toString();\n  \n  this._app.beginPath();\n  \n  for ( var i = 0; i < this._amount; i += 1 ) {\n\n    var pos = this._points[i];\n\n    if (i === 0) {\n      this._app.moveTo( pos.x, pos.y );\n    } else {\n      this._app.lineTo( pos.x, pos.y );\n    }\n    \n  }\n\n  this._app.closePath();\n  this._app.fill();\n};\n//@ sourceURL=moon/index.js"
-));
-require.register("prism/index.js", Function("exports, require, module",
-"var inherit = require( 'inherit' )\n  , Tween = require( 'tween' )\n  , Vector = require( 'vector' )\n  , Neuron = require( 'neuron' );\n\nmodule.exports = Prism;\n\nfunction Prism( app, duration ){\n  \n  Neuron.apply( this, arguments );\n  \n  this.x = this._app.width / 2;\n  this.y = this._app.height / 2;\n  this.distance = this._app.width;\n  this.setDuration( duration );\n  \n  this._amount = 3;\n  this._offset = - PI / 2;\n\n  this._magnitude = 0.0;\n  this._m = 50.0;\n\n  this.initialize();\n}\n\ninherit( Prism, Neuron );\n\nPrism.prototype.setAmount = function( amount ) {\n\n  if ( this.playing ) return;\n  \n  this._amount = amount;\n  this.initialize();\n\n};\n\nPrism.prototype.setMagnitude = function( magnitude ) {\n\n  if ( this.playing ) return;\n  \n  this._m = magnitude;\n};\n\n\nPrism.prototype.getAmount = function( ) {\n  return this._amount;\n};\n\nPrism.prototype.play = function() {\n  \n  if( this.playing ) return;\n\n  this._animate_in();\n\n};\n\nPrism.prototype._animate_in = function( ) {\n  \n  var self = this;\n\n  this.playing = true;\n\n  var update = function( pos ) {\n    return function(o){\n      pos.x = o.x;\n      pos.y = o.y;\n    }\n  }\n\n  for ( var i = 0; i < this._amount; i += 1 ) {\n    var pos = this._points[i]\n      , ref = this.__points[i]\n      , from = { x: pos.x, y: pos.y }\n      , to = { x: ref.x, y: ref.y }\n      , tween = Tween( from )\n              .to( to )\n              .duration( this.duration )\n              .ease( this.easing )\n              .update( update(pos) )\n              .on( 'end', function() {\n                self._removeTween( this );\n              } );\n\n    this._tweens.push( tween );\n  }\n  \n  var lastTween = Tween({ magnitude: this._magnitude })\n    .to( { magnitude: this._m } )\n    .duration( this.duration )\n    .ease( this.easing )\n    .update( function(o) {\n      self._magnitude = o.magnitude;\n    } )\n    .on( 'end', function(){\n      self._removeTween( this );\n      self.animate_end();\n    })\n\n  this._tweens.push( lastTween );\n};\n\n\nPrism.prototype.animate_end = function() {\n  this.reset();\n  this.playing = false;\n\n};\n\n\nPrism.prototype.initialize = function( ) {\n\n  if ( this.playing ) return;\n  \n  this.__points = new Array( this._amount );\n  this._points = new Array( this._amount );\n  this.reset();\n\n};\n\n\nPrism.prototype.reset = function() {\n  \n  this._magnitude = 0.0;\n\n  for ( var i = 0; i < this._amount; i += 1 ) {\n\n    var pct = ( i + 1 ) / this._amount\n      , theta = pct * TWO_PI + this._offset\n      , _x = cos( theta )\n      , _y = sin( theta )\n    \n    this._points[i] = new Vector( this.x, this.y );\n    this.__points[i] = new Vector( this.distance * _x + this.x, this.distance * _y + this.y );\n\n  }\n\n};\n\n\nPrism.prototype.render = function() {\n  \n  if ( !this.playing ) return;\n\n  this._app.strokeStyle = this.pigment.toString();\n  this._app.lineWidth = 1;\n\n  // noFill\n  this._app.fillStyle = 'rgba(0, 0, 0, 0)';\n  this._app.beginPath();\n  for ( var i = 0; i < this._amount; i += 1 ) {\n\n    var pos = this._points[i];\n\n    if (i === 0) {\n      this._app.moveTo( pos.x, pos.y );\n    } else {\n      this._app.lineTo( pos.x, pos.y );\n    }\n    \n  }\n  this._app.closePath();\n  this._app.stroke();\n\n  // this._app.lineWidth = 0;\n  this._app.fillStyle = this.pigment.toString();\n  this._app.beginPath();\n  for ( var i = 0; i < this._amount; i += 1 ) {\n    var pos = this._points[i];\n    this._app.moveTo( pos.x, pos.y );\n    this._app.arc( pos.x, pos.y, this._magnitude / 2, 0, TWO_PI, true );\n  }\n  this._app.closePath();\n  this._app.fill();\n\n};\n//@ sourceURL=prism/index.js"
-));
-require.register("mnmly-vector/index.js", Function("exports, require, module",
-"\n/**\n * Expose `Vector`.\n */\n\nmodule.exports = Vector;\n\n/**\n * Initialize a new `Vector` with x / y.\n *\n * @param {Number} x\n * @param {Number} y\n * @api public\n */\n\nfunction Vector(x, y) {\n  if (!(this instanceof Vector)) return new Vector(x, y);\n  this.x = x;\n  this.y = y;\n}\n\n/**\n * Return a negated vector.\n *\n * @return {Vector}\n * @api public\n */\n\nVector.prototype.negate = function(){\n  return new Vector(-this.x, -this.y);\n};\n\n/**\n * Add x / y.\n *\n * @param {Vector} p\n * @return {Vector} new vector\n * @api public\n */\n\nVector.prototype.add = function(v){\n  return new Vector(this.x + v.x, this.y + v.y);\n};\n\n/**\n * Sub x / y.\n *\n * @param {Vector} p\n * @return {Vector} new vector\n * @api public\n */\n\nVector.prototype.sub = function(v){\n  return new Vector(this.x - v.x, this.y - v.y);\n};\n\n/**\n * Multiply x / y.\n *\n * @param {Vector} p\n * @return {Vector} new vector\n * @api public\n */\n\nVector.prototype.mul = function(v){\n  return new Vector(this.x * v.x, this.y * v.y);\n};\n\n/**\n * Divide x / y.\n *\n * @param {Vector} p\n * @return {Vector} new vector\n * @api public\n */\n\nVector.prototype.div = function(v){\n  return new Vector(this.x / v.x, this.y / v.y);\n};\n\n/**\n * Check if these vectors are the same.\n *\n * @param {Vector} p\n * @return {Boolean}\n * @api public\n */\n\nVector.prototype.equals = function(v){\n  return this.x == v.x && this.y == v.y;\n};\n\n/**\n * Return a clone of this vector.\n *\n * @return {Vector} new vector\n * @api public\n */\n\nVector.prototype.clone = function(){\n  return new Vector(this.x, this.y);\n};\n\n/**\n * Return angle in radians.\n *\n * @return {Number}\n * @api public\n */\n\nVector.prototype.angle = function(){\n  return Math.atan2(this.x, this.y);\n};\n\n/**\n * Return angle in degrees.\n *\n * @return {Number}\n * @api public\n */\n\nVector.prototype.degrees = function(){\n  return this.angle() * 180 / Math.PI;\n};\n\n/**\n * Return the distance between vectors.\n *\n * @param {Vector} v\n * @return {Number}\n * @api public\n */\n\nVector.prototype.distance = function(v){\n  var x = this.x - v.x;\n  var y = this.y - v.y;\n  return Math.sqrt(x * x + y * y);\n};\n\n/**\n * Return the magnitude of this vector.\n *\n * @return {Number}\n * @api public\n */\n\nVector.prototype.magnitude = function(){\n  return Math.sqrt(this.x * this.x + this.y * this.y);\n};\n\n/**\n * Return the linear interpolation between vectors given a step point.\n *\n * @param {Vector} v\n * @param {Number} a\n * @return {Vector}\n * @api public\n */\n\nVector.prototype.interpolated = function(v, a){\n  return new Vector(this.x * (1 - a) + v.x * a, this.y * (1 - a) + v.y * a);\n};\n\n/**\n * Return the middle position between vectors.\n *\n * @param {Vector} v\n * @return {Vector}\n * @api public\n */\n\nVector.prototype.middle = function(v){\n  return this.interpolated(v, .5);\n};\n\n/**\n * Return the dot product between vectors.\n *\n * @param {Vector} v\n * @return {Number}\n * @api public\n */\n\nVector.prototype.dot = function(v) {\n  return this.x * v.x + this.y * v.y;\n};\n\n/**\n * Return the angle between vectors in radians.\n *\n * @param {Vector} v\n * @return {Number}\n * @api public\n */\n\nVector.prototype.angleBetween = function(v){\n  var dot = this.dot(v);\n  var magA = this.magnitude();\n  var magB = v.magnitude();\n  return Math.acos(dot / (magA * magB))\n};\n\n/**\n * Return \"(x, y)\" string representation.\n *\n * @return {String}\n * @api public\n */\n\nVector.prototype.toString = function(){\n  return '(' + this.x + ', ' + this.y + ')';\n};\n\n\n\n//@ sourceURL=mnmly-vector/index.js"
-));
-require.register("clay/index.js", Function("exports, require, module",
-"var inherit = require( 'inherit' )\n  , Tween = require( 'tween' )\n  , Vector = require( 'vector' )\n  , Neuron = require( 'neuron' );\n\nmodule.exports = Clay;\n\nfunction Clay( app, duration ){\n  \n  Neuron.apply( this, arguments );\n  \n  this.setDuration( duration );\n  \n  this.origin = new Vector( this._app.width / 2, this._app.height );\n  this.impact = new Vector( random( this._app.width ), random( this._app.height ) )\n  this.distance = this._app.height;\n  this.rotation = HALF_PI;\n  this.smoothness = true;\n  this._amount = floor( random( 8, 16 ) );\n  this.initialize();\n\n}\n\ninherit( Clay, Neuron );\n\nClay.prototype.setAmount = function( amount ) {\n\n  if ( this.playing ) return;\n  this._amount = amount;\n\n};\n\nClay.prototype.setOrigin = function( x, y ) {\n\n  if ( this.playing ) return;\n    \n  this.origin.x = x;\n  this.origin.y = y;\n};\n\nClay.prototype.setSmoothing = function( smoothness ) {\n\n  if ( this.playing ) return;\n\n  this.smoothness = smoothness;\n\n};\n\nClay.prototype.setImpact = function( x, y ) {\n  \n  if( this.plaing ) return;\n  \n  this.impact.x = x;\n  this.impact.y = y;\n\n};\n\nClay.prototype.initialize = function( ) {\n\n  if ( this.playing ) return;\n  \n  this._verts = new Array( this._amount );\n  this._dests = new Array( this._amount );\n  this.reset();\n  this.setupDestinations();\n\n};\n\nClay.prototype.setupDestinations = function( ) {\n  \n  if ( this.playing ) return;\n\n  for ( var i = 0; i < this._amount; i += 1 ) {\n\n    var v = this._verts[i]\n      , ptheta = i / this._amount * TWO_PI + this.rotation\n      , theta = v.angleBetween( this.impact )\n      , d = v.distance( this.impact )\n      , a = 5 * this.distance / sqrt( d )\n      , x = a * cos( theta ) + v.x\n      , y = a * sin( theta ) + v.y\n    this._dests[i] = new Vector( x, y );\n  }\n};\n\n\nClay.prototype.reset = function() {\n  \n  if( this.playing ) return;\n\n  for ( var i = 0; i < this._amount; i += 1 ) {\n\n    var pct = ( i + 1 ) / this._amount\n      , theta = pct * TWO_PI + this.rotation\n      , x = this.distance * cos( theta ) + this.origin.x\n      , y = this.distance * sin( theta ) + this.origin.y\n    this._verts[i] = new Vector( x, y );\n\n  }\n\n};\n\nClay.prototype.play = function() {\n  \n  if( this.playing ) return;\n\n  this.animate_in();\n\n};\n\nClay.prototype.animate_in = function( ) {\n  \n  var self = this;\n\n  this.playing = true;\n  \n  var update = function( v ){\n    return function( o ){\n      v.x = o.x;\n      v.y = o.y;\n    }\n  };\n  for ( var i = 0; i < this._amount; i += 1 ) {\n    var v = this._verts[i]\n      , d = this._dests[i]\n      , from = { x: v.x, y: v.y }\n      , to = { x: d.x, y: d.y }\n      , tween = Tween( from )\n            .to( to )\n            .ease( this.easing )\n            .duration( this.duration )\n            .update( update( v ) )\n            .on( 'end', function(){\n              self._removeTween( this );\n            } )\n    this._tweens.push( tween );\n  }\n\n  var lastTween = Tween( { slave: this._slave })\n                    .to( { slave: 0 } )\n                    .ease( this.easing )\n                    .duration( this.duration )\n                    .update( function( o ) { self._slave = o.slave } )\n                    .on( 'end', function(){\n                      self._removeTween( this );\n                      self.animate_out();\n                    })\n    \n  this._tweens.push( lastTween );\n  \n};\n\n\n\nClay.prototype.animate_out = function() {\n    \n  this.reset();\n  this.playing = false;\n\n};\n\nClay.prototype.render = function() {\n  \n  if ( !this.playing ) return;\n\n  this._app.lineWidth = 0;\n  this._app.fillStyle = this.pigment.toString();\n\n  this._app.beginPath();\n  \n  if ( this.smoothness ) {\n    // Barrowed from Processing.js `curveVertex`\n    var last = this._verts.length - 1;\n    this._app.moveTo( this._verts[last].x, this._verts[last].y )\n    var b = new Array(4)\n      , s = 1;\n    for ( var i = 1; ( i + 2 ) < this._amount; i += 1 ) {\n      var v = this._verts[i];\n      b[0] = [v.x, v.y];\n      b[1] = [v.x + ( s * this._verts[i + 1].x - s * this._verts[i - 1].x ) / 6,\n              v.y + ( s * this._verts[i + 1].y - s * this._verts[i - 1].y ) / 6];\n      b[2] = [this._verts[i + 1].x + ( s * this._verts[i].x - s * this._verts[i + 2].x ) / 6,\n              this._verts[i + 1].y + ( s * this._verts[i].y - s * this._verts[i + 2].y ) / 6];\n      b[3] = [ this._verts[i + 1].x, this._verts[i + 1].y];\n      this._app.bezierCurveTo( b[1][0], b[1][1], b[2][0], b[2][1], b[3][0], b[3][1] );\n    }\n\n  } else {\n    for ( var i = 0; i < this._amount; i += 1 ) {\n      var v = verts[i];\n      this._app.lineTo( v.x, v.y );\n    }\n  }\n  \n  this._app.closePath();\n  this._app.fill();\n};\n\nClay.prototype.getAmount = function( ) {\n  return this._amount;\n};\n\n\n//@ sourceURL=clay/index.js"
-));
-require.register("suspension/index.js", Function("exports, require, module",
-"var inherit = require( 'inherit' )\n  , debug = require( 'debug' )( 'neuronal:suspension' )\n  , Tween = require( 'tween' )\n  , Vector = require( 'vector' )\n  , Neuron = require( 'neuron' );\n\nmodule.exports = Suspension;\n\nfunction Suspension( app, duration ) {\n\n  Neuron.apply( this, arguments );\n  this.duration = duration;\n  this._origin = new Vector( this._app.width / 2, this._app.height / 2 );\n  this._theta = random( TWO_PI );\n  this._deviation = HALF_PI;\n  this._distance = this._app.width / 2;\n  this._radius = 25;\n  this._slave = 0;\n  this._amount = 16;\n  this._tweens = [];\n  \n  this._verts = new Array(this._amount);\n\n  this.initialize();\n}\n\ninherit( Suspension, Neuron );\n\n\nSuspension.prototype.getX = function( ) {\n  return this._origin.x;\n};\n\nSuspension.prototype.getY = function() {\n  return this._origin.y;\n};\n\nSuspension.prototype.getTheta = function( ) {\n  return this._theta;\n};\n\nSuspension.prototype.getDeviation = function( ) {\n  return this._deviation;\n};\n\nSuspension.prototype.getDistance = function( ) {\n  return this._distance;\n};\n\n\nSuspension.prototype.getAmount = function() {\n  return this._amount;\n};\n\nSuspension.prototype.getRadius = function() {\n  return this._radius;\n};\n\n\nSuspension.prototype.setDistance = function( distance ) {\n  \n  if ( this.playing ) return;\n\n  this._distance = distance;\n\n};\n\n\nSuspension.prototype.setTheta = function( theta ) {\n  \n  if ( this.playing ) return;\n\n  this._theta = theta;\n  \n};\n\n\nSuspension.prototype.setDeviation = function( deviation ) {\n  \n  if ( this.playing ) return;\n\n  this._deviation = deviation / 2;\n\n};\n\nSuspension.prototype.setAmount = function( amount ) {\n  if ( this.playing ) return;\n  this._amount = amount;\n\n};\n\nSuspension.prototype.setOrigin = function( x, y ) {\n\n  if ( this.playing ) return;\n\n  this._origin.x = x;\n  this._origin.y = y;\n    \n};\n\nSuspension.prototype.setRadius = function( radius ) {\n  \n  if ( this.playing ) return;\n\n  this._radius = radius;\n\n};\n\n\nSuspension.prototype.initialize = function( ) {\n\n  if (this.playing) return;\n  \n  for ( var i = 0; i < this._amount; i += 1 ) {\n\n    var vert = this._verts[i] = new Suspension.Vertex( this._origin.x, this._origin.y )\n      , t = this._theta + random( -this._deviation, this._deviation )\n      , a = random( this._distance )\n      , d = random( this.duration )\n      , r = random( this._radius / 2, this._radius )\n      , x = a * cos( t ) + this._origin.x\n      , y = a * sin( t ) + this._origin.y;\n    vert.destination.x = x;\n    vert.destination.y = y;\n    vert.radius = r;\n  }\n\n};\n\nSuspension.prototype.play = function() {\n  \n  if ( this.playing ) return;\n\n\n  this.animate_in();\n};\n\n\nSuspension.prototype.animate_in = function() {\n  \n  var self = this;\n\n  this.playing = true;\n\n  var update = function( v ){\n    return function( o ){\n      v.x = o.x;\n      v.y = o.y;\n    }\n  }\n  for ( var i = 0; i < this._amount; i += 1 ) {\n    var v = this._verts[i]\n      , from = { x: v.x, y: v.y }\n      , to = { x: v.destination.x, y: v.destination.y }\n      , tween = Tween( from )\n          .ease( this.easing )\n          .duration( this.duration )\n          .to( to )\n          .update( update( v ) )\n          .on( 'end', function(){\n            self._removeTween( this );\n          });\n    this._tweens.push( tween );\n  }\n\n  var lastTween = Tween( { slave: 0 } )\n    .ease( this.easing )\n    .duration( this.duration )\n    .to( { slave: 0 } )\n    .update( function( o ) { self._slave = o.slave; } )\n    .on( 'end', function(){\n      var index = self._tweens.indexOf( this );\n      self._tweens.splice( index, 1 );\n      self.animate_end();\n    } );\n    this._tweens.push( lastTween );\n\n};\n\n\nSuspension.prototype.animate_end = function() {\n  \n  this.playing = false;\n  debug( 'animate_end' );\n  \n  for ( var i = 0; i < this._amount; i += 1 ) {\n    this._verts[i].x = this._origin.x;\n    this._verts[i].y = this._origin.y;\n  }\n};\n\nSuspension.prototype.render = function() {\n  if ( !this.playing ) return;\n  \n  var context = this._app;\n  // ctx.noStroke();\n  this._app.fillStyle = this.pigment.toString();\n  this._app.beginPath();\n  for ( var i = 0; i < this._amount; i += 1 ) {\n    var v = this._verts[i];\n    // ellipse( v.x, v.y, v.radius, v.radius );\n    this._app.moveTo(v.x, v.y);\n    this._app.arc( v.x, v.y, v.radius / 2, 0, TWO_PI, true);\n  }\n  this._app.closePath();\n  this._app.fill();\n};\n\n// Vertex\nSuspension.Vertex = Vertex;\n\nfunction Vertex( x, y ){\n  Vector.apply(this, arguments);\n  this.destination = new Vector(0, 0);\n  this.radius = 0.0;\n}\n\ninherit(Vertex, Vector);\n\n//@ sourceURL=suspension/index.js"
-));
-require.register("mnmly-tween/index.js", Function("exports, require, module",
-"\n/**\n * Module dependencies.\n */\n\nvar Emitter = require('emitter')\n  , ease = require('ease');\n\n/**\n * Expose `Tween`.\n */\n\nmodule.exports = Tween;\n\n/**\n * Initialize a new `Tween` with `obj`.\n *\n * @param {Object|Array} obj\n * @api public\n */\n\nfunction Tween(obj) {\n  if (!(this instanceof Tween)) return new Tween(obj);\n  this._from = obj;\n  this.ease('linear');\n  this.duration(500);\n  this.delay(0);\n}\n\n/**\n * Mixin emitter.\n */\n\nEmitter(Tween.prototype);\n\n/**\n * Reset the tween.\n *\n * @api public\n */\n\nTween.prototype.reset = function(){\n  this.isArray = Array.isArray(this._from);\n  this._curr = clone(this._from);\n  this._done = false;\n  this._start = Date.now();\n  return this;\n};\n\n/**\n * Tween to `obj` and reset internal state.\n *\n *    tween.to({ x: 50, y: 100 })\n *\n * @param {Object|Array} obj\n * @return {Tween} self\n * @api public\n */\n\nTween.prototype.to = function(obj){\n  this.reset();\n  this._to = obj;\n  return this;\n};\n\n/**\n * Set duration to `ms` [500].\n *\n * @param {Number} ms\n * @return {Tween} self\n * @api public\n */\n\nTween.prototype.duration = function(ms){\n  this._duration = ms;\n  return this;\n};\n\n/**\n * Set delay to `ms` [0].\n *\n * @param {Number} ms\n * @return {Tween} self\n * @api public\n */\n\nTween.prototype.delay = function(ms){\n  this._delay = ms;\n  return this;\n};\n\n/**\n * Set easing function to `fn`.\n *\n *    tween.ease('in-out-sine')\n *\n * @param {String|Function} fn\n * @return {Tween}\n * @api public\n */\n\nTween.prototype.ease = function(fn){\n  fn = 'function' == typeof fn ? fn : ease[fn];\n  if (!fn) throw new TypeError('invalid easing function');\n  this._ease = fn;\n  return this;\n};\n\n/**\n * Stop the tween and immediately emit \"stop\" and \"end\".\n *\n * @return {Tween}\n * @api public\n */\n\nTween.prototype.stop = function(){\n  this.stopped = true;\n  this._done = true;\n  this.emit('stop');\n  this.emit('end');\n  return this;\n};\n\n/**\n * Perform a step.\n *\n * @return {Tween} self\n * @api private\n */\n\nTween.prototype.step = function(){\n  if (this._done) return;\n\n  // duration\n  var duration = this._duration;\n  var now = Date.now();\n  var delta = now - this._start;\n  var done = delta >= duration + this._delay;\n  var waiting = delta < this._delay;\n  \n  if (waiting) return;\n\n  // complete\n  if (done) {\n    this._from = this._to;\n    this._update(this._to);\n    this._done = true;\n    this.emit('end');\n    return this;\n  }\n\n  // tween\n  var from = this._from;\n  var to = this._to;\n  var curr = this._curr;\n  var fn = this._ease;\n  var p = (now - this._start - this._delay) / duration;\n  var n = fn(p);\n\n  // array\n  if (this.isArray) {\n    for (var i = 0; i < from.length; ++i) {\n      curr[i] = from[i] + (to[i] - from[i]) * n;\n    }\n\n    this._update(curr);\n    return this;\n  }\n\n  // objech\n  for (var k in from) {\n    curr[k] = from[k] + (to[k] - from[k]) * n;\n  }\n\n  this._update(curr);\n  return this;\n};\n\n/**\n * Set update function to `fn` or\n * when no argument is given this performs\n * a \"step\".\n *\n * @param {Function} fn\n * @return {Tween} self\n * @api public\n */\n\nTween.prototype.update = function(fn){\n  if (0 == arguments.length) return this.step();\n  this._update = fn;\n  return this;\n};\n\n/**\n * Clone `obj`.\n *\n * @api private\n */\n\nfunction clone(obj) {\n  if (Array.isArray(obj)) return obj.slice();\n  var ret = {};\n  for (var key in obj) ret[key] = obj[key];\n  return ret;\n}\n//@ sourceURL=mnmly-tween/index.js"
-));
-require.register("pinwheel/index.js", Function("exports, require, module",
-"var inherit = require( 'inherit' )\n  , Tween = require( 'tween' )\n  , Vector = require( 'vector' )\n  , Neuron = require( 'neuron' );\n\nmodule.exports = PinWheel;\n\nfunction PinWheel( app, duration ){\n  \n  Neuron.apply( this, arguments );\n  \n  this.setDuration( duration );\n  this._amount = 8;\n  this.dur = duration / ( this._amount + 2 );\n  this._origin = new Vector( this._app.width / 2, this._app.height / 2 );\n  this._distance = this._app.height / 6;\n  this._startAngle = 0;\n  this._endAngle = TWO_PI;\n  this._drift = random( TWO_PI );\n  this.initialize();\n}\n\ninherit( PinWheel, Neuron );\n\nPinWheel.prototype.setAmount = function( amount ) {\n\n  if ( this.playing ) return;\n\n  this._amount = amount;\n\n};\n\nPinWheel.prototype.setDrift = function( drift ) {\n\n  if ( this.playing ) return;\n\n  this._drift = drift;\n\n};\n\n\nPinWheel.prototype.setAngles = function( startAngle, endAngle ) {\n\n  this._startAngle = startAngle;\n  this._endAngle = endAngle;\n\n};\n\nPinWheel.prototype.initialize = function( ) {\n\n  if ( this.playing ) return;\n  \n  this._points = new Array( this._amount );\n  for ( var i = 0; i < this._amount; i += 1 ) {\n    this._points[i] = new Vector( 0, 0 );\n  }\n  this.reset();\n\n};\n\n\nPinWheel.prototype.reset = function() {\n  \n  if ( this.playing ) return;\n\n  for ( var i = 0; i < this._amount; i += 1 ) {\n    var pct = i / this._amount\n      , theta = this._startAngle\n    this._points[i].x = this._distance * cos( theta ) + this._origin.x;\n    this._points[i].y = this._distance * sin( theta ) + this._origin.y;\n\n  }\n};\n\nPinWheel.prototype.play = function() {\n\n  if ( this.playing ) return;\n\n  this.animate_in();\n  \n};\n\n\nPinWheel.prototype.animate_in = function( ) {\n  \n  var self = this;\n\n  this.playing = true;\n  var delay = 0;\n\n  var update = function( pos ) {\n    return function(o){\n      pos.x = o.x;\n      pos.y = o.y;\n    }\n  }\n  var sequences = [];\n  for ( var i = 0; i < this._amount; i += 1 ) {\n\n    var index = i + 1\n      , _drift = this._drift / index\n      , center = PI * ( index / this._amount );\n    delay += this.dur;\n    sequences[i] = [];\n    for ( var j = 0; j < this._amount; j += 1 ) {\n      var pct = min( j / index, 1.0 )\n        , theta = pct * this._endAngle + this._startAngle + center + this._drift\n        , p = this._points[j]\n        , x = this._distance * cos( theta ) + this._origin.x\n        , y = this._distance * sin( theta ) + this._origin.y\n        , from = 0 === i ? { x: p.x, y: p.y } : { x: sequences[i - 1][j].x, y: sequences[i - 1][j].y }\n        , to = { x: x, y: y }\n        , tween = Tween( from )\n                .delay( delay )\n                .to( to )\n                .duration( this.dur )\n                .ease( this.easing )\n                .update( update(p) )\n                .on( 'end', function() {\n                  self._removeTween( this );\n                } );\n\n    sequences[i].push({ x: x, y: y });\n    this._tweens.push( tween );\n    // if ( j >= index ) {\n    //   x = this._origin.x;\n    //   y = this._origin.y;\n    // } else {\n    //  x = this._distance * cos( theta ) + this._origin.x\n    //  y = this._distance * sin( theta ) + this._origin.y;\n    // }\n\n    }\n  }\n  \n  var lastTween = Tween({ slave: this._slave })\n    .to( { slave: 0 } )\n    .duration( this.dur )\n    .delay( delay )\n    .ease( this.easing )\n    .update( function(o) {\n      self._slave = o.slave;\n    } )\n    .on( 'end', function(){\n      self._removeTween( this );\n      self.animate_out();\n    })\n\n  this._tweens.push( lastTween );\n};\n\n\nPinWheel.prototype.animate_out = function() {\n  \n  var self = this;\n\n  this.playing = true;\n\n  var update = function( pos ) {\n    return function(o){\n      pos.x = o.x;\n      pos.y = o.y;\n    }\n  }\n  \n  for ( var i = 0; i < this._amount; i += 1 ) {\n    var p = this._points[i]\n      , from = { x: p.x, y: p.y }\n      , to = { x: this._origin.x, y: this._origin.y }\n      , tween = Tween( from )\n              .to( to )\n              .duration( this.dur )\n              .ease( this.easing )\n              .update( update( p ) )\n              .on( 'end', function() {\n                self._removeTween( this );\n              } );\n\n    this._tweens.push( tween );\n  }\n  \n  var lastTween = Tween({ slave: this._slave })\n    .to( { slave: 0 } )\n    .duration( this.dur )\n    .ease( this.easing )\n    .update( function(o) {\n      self._slave = o.slave;\n    } )\n    .on( 'end', function(){\n      self._removeTween( this );\n      self.animate_end();\n    })\n\n  this._tweens.push( lastTween );\n};\n\n\nPinWheel.prototype.animate_end = function() {\n    \n  this.playing = false;\n  this.reset();\n\n};\n\n\n\n\nPinWheel.prototype.render = function() {\n  \n  if ( !this.playing ) return;\n\n  // noStroke\n  this._app.fillStyle = this.pigment.toString();\n  \n  this._app.beginPath();\n  \n  for ( var i = 0; i < this._amount; i += 1 ) {\n\n    var pos = this._points[i];\n\n    if (i === 0) {\n      this._app.moveTo( pos.x, pos.y );\n    } else {\n      this._app.lineTo( pos.x, pos.y );\n    }\n    \n  }\n\n  this._app.closePath();\n  this._app.fill();\n};\n\nPinWheel.prototype._createTween = function() {\n  return _tween;\n};\n//@ sourceURL=pinwheel/index.js"
-));
-require.register("squiggle/index.js", Function("exports, require, module",
-"var inherit = require( 'inherit' )\n  , Tween = require( 'tween' )\n  , Vector = require( 'vector' )\n  , Neuron = require( 'neuron' );\n\nmodule.exports = Squiggle;\n\nfunction Squiggle( app, duration ){\n  \n  Neuron.apply( this, arguments );\n  \n  this.x = this._app.width / 2;\n  this.y = this._app.height / 2;\n  this.distance = this._app.width;\n  this.setDuration( duration );\n  \n  this._state = 0.0;\n  this._entering = false;\n\n  this._distance = this._app.width / 2;\n  this._amplitude = this._app.height / 4;\n  this._angle = 0;\n  this._revolutions = 0;\n  this._amount = 256;\n  this._origin = new Vector( this._app.width / 2, this._app.height / 2 );\n  \n  this.initialize();\n}\n\ninherit( Squiggle, Neuron );\n\nSquiggle.prototype.setRevolutions = function( revolutions ) {\n\n  if ( this.playing ) return;\n  this._revolutions = revolutions;\n\n};\n\nSquiggle.prototype.setAmount = function( amount ) {\n\n  if ( this.playing ) return;\n  \n  this._amount = amount;\n\n};\n\nSquiggle.prototype.setAngle = function( angle ) {\n\n  if ( this.playing ) return;\n  \n  this._angle = angle;\n};\n\nSquiggle.prototype.setAmplitude = function( amplitude ) {\n\n  if ( this.playing ) return;\n  \n  this._amplitude = amplitude;\n};\n\nSquiggle.prototype.setDistance = function( distance ) {\n\n  if ( this.playing ) return;\n  \n  this._distance = distance;\n};\n\n\nSquiggle.prototype.getAmount = function( ) {\n  return this._amount;\n};\n\nSquiggle.prototype.play = function() {\n  \n  if( this.playing ) return;\n\n  this.animate_in();\n\n};\n\nSquiggle.prototype.animate_in = function( ) {\n  \n  var self = this;\n\n  this.playing = true;\n  this._entering = true;\n  this._state = 0.0;\n\n  var tween = Tween({ state: this._state })\n    .to( { state: 1.0 } )\n    .duration( this.duration )\n    .ease( this.easing )\n    .update( function(o) {\n      self._state = o.state;\n    } )\n    .on( 'end', function(){\n      self._removeTween( this );\n      self.animate_out();\n    })\n\n  this._tweens.push( tween );\n};\n\nSquiggle.prototype.animate_out = function() {\n\n  var self = this;\n  this._entering = false;\n  this._state = 0.0;\n  \n  var tween = Tween({ state: this._state })\n    .to( { state: 1.0 } )\n    .duration( this.duration )\n    .ease( this.easing )\n    .update( function(o) {\n      self._state = o.state;\n    } )\n    .on( 'end', function(){\n      self._removeTween( this );\n      self.animate_end();\n    })\n\n  this._tweens.push( tween );\n\n};\n\nSquiggle.prototype.animate_end = function() {\n  \n  this.playing = false;\n  this.reset();\n\n};\n\n\nSquiggle.prototype.initialize = function( ) {\n\n  if ( this.playing ) return;\n  \n  this._points = new Array( this._amount );\n  this.reset();\n\n};\n\n\nSquiggle.prototype.reset = function() {\n  \n  if ( this.playing ) return;\n\n  for ( var i = 0; i < this._amount; i += 1 ) {\n    this._points[i] = this._getPointOnLine( i / this._amount );\n  }\n};\n\n\nSquiggle.prototype.render = function() {\n  \n  if ( !this.playing ) return;\n  \n  this._app.lineWidth = this._app.height / 60;\n  this._app.strokeStyle = this.pigment.toString();\n  this._app.lineCap = 'round';\n  this._app.lineJoin = 'round';\n  // noFill\n  this._app.fillStyle = 'rgba(0, 0, 0, 0)';\n\n  this._app.beginPath();\n\n  if ( this._entering ) {\n\n    for ( var i = 0; i < this._amount; i += 1 ) {\n\n      var pct = i / this._amount;\n\n      if ( pct >= this._state ) continue;\n\n      var p = this._points[i];\n      if ( 0 === i ) {\n        this._app.moveTo( p.x, p.y );\n      } else {\n        this._app.lineTo( p.x, p.y );\n      }\n    }\n  } else {\n    var l = this._getPointOnLine( 1.0 );\n    this._app.moveTo( l.x, l.y );\n    for ( var i = this._amount - 1; i >= 0; i-- ) {\n      var pct = i / this._amount;\n      if ( pct <= this._state ) continue;\n      var p = this._points[i];\n      this._app.lineTo( p.x, p.y );\n    }\n    var t = this._getPointOnLine( this._state );\n    this._app.lineTo( t.x, t.y );\n  }\n\n  //this._app.closePath();\n  this._app.stroke();\n\n};\n\nSquiggle.prototype._getPointOnLine = function( pct ) {\n\n  var halfDistance = this._distance / 2\n    , theta = pct * this._revolutions * TWO_PI\n    , up = this._angle - HALF_PI\n    , x = this._origin.x - halfDistance * cos( this._angle )\n    , y = this._origin.y - halfDistance * sin( this._angle );\n\n  x += pct * this._distance * cos( this._angle );\n  x += cos( up ) * cos( theta ) * this._amplitude;\n\n  y += pct * this._distance * sin( this._angle );\n  y += sin( up ) * sin( theta + up ) * this._amplitude;\n\n  return new Vector( x, y );\n};\n//@ sourceURL=squiggle/index.js"
-));
-require.register("utils/index.js", Function("exports, require, module",
-"exports.mod = function( v, l ) {\n\n  while ( v < 0 ) {\n    v += l;\n  }\n  return v % l;\n}\n\nexports.ease = function( cur, dest, ease) {\n\n  var diff = dest - cur;\n  if ( diff < ease ) {\n    cur = dest;\n  } else {\n    cur += diff * ease;\n  }\n  return cur;\n\n}\n\n//@ sourceURL=utils/index.js"
-));
-require.register("palette/index.js", Function("exports, require, module",
-"var Color = require( 'color' ).RGBA\n  , inherit = require( 'inherit' )\n  , statics = require( './statics' )\n  , ease = require( 'utils' ).ease\n\nmodule.exports = Palette;\n\nfunction Palette(){\n\n  this._amount = 7;\n\n  this.source = this._colors[0];\n  this.current = new Array(this._amount);\n  this.destination = this._colors[0]\n\n  for (var i = 0; i < this._amount; i++) {\n    this.current[i] = new Color(0, 0, 0, 1);\n  }\n  \n  this._easing = 0.125;\n  this._state = 0.0;\n  this._dest = 1.0;\n  this._index = 0;\n  this._assigned = false;\n\n}\n\nPalette.Color = PaletteColor;\ninherit( PaletteColor, Color );\n\nPalette.prototype.next = function() {\n  if ( !this._assigned ) return;\n  \n  this._index = ( this._index + 1 == this._colors.length ) ? 0 : this._index + 1\n  this.destination = this._colors[this._index];\n  this.reset()\n};\n\nPalette.prototype.getColor = function( type ) {\n  return this.current[type];\n};\n\nPalette.prototype.reset = function() {\n  this._state = 0.0;\n  this._assigned = false;\n};\n\n/**\n * Updates the tweening of the colors\n */\n\nPalette.prototype.update = function( ) {\n  if ( this._state >= 1.0 ) {\n    // At a standstill\n    this._assign();\n  } else {\n    this._state = ease( this._state, this._dest, this._easing );\n    for ( var i = 0; i < this._amount; i += 1 ) {\n\n      var s = this.source[i]\n        , c = this.current[i]\n        , d = this.destination[i];\n\n      c.r = parseInt( lerp( s.r, d.r, this._state ) );\n      c.g = parseInt( lerp( s.g, d.g, this._state ) );\n      c.b = parseInt( lerp( s.b, d.b, this._state ) );\n    }\n  }\n};\n\nPalette.prototype._assign = function( ) {\n  \n  if ( this.assigned ) return;\n  \n  this.source = this._colors[this._index];\n  this._assigned = true;\n};\n\n\nvar absolute_white = Palette.prototype._absolute_white = new Palette.Color(255);\nvar absolute_black = Palette.prototype._absolute_black = new Palette.Color(0);\n\nPalette.prototype._colors = [\n  [\n    new Palette.Color(181),\n    new Palette.Color(141, 164, 170),\n    new Palette.Color(227, 79, 12),\n    new Palette.Color(163, 141, 116),\n    new Palette.Color(255, 197, 215),\n    absolute_white,\n    absolute_black\n  ],\n  [\n    new Palette.Color(57, 109, 193),\n    new Palette.Color(186, 60, 223),\n    new Palette.Color(213, 255, 93),\n    new Palette.Color(213, 160, 255),\n    new Palette.Color(36, 221, 165),\n    new Palette.Color(215, 236, 255),\n    absolute_black\n  ],\n  [\n    new Palette.Color(217, 82, 31),\n    new Palette.Color(143, 74, 45),\n    new Palette.Color(255, 108, 87),\n    new Palette.Color(255, 126, 138),\n    new Palette.Color(227, 190, 141),\n    absolute_white,\n    absolute_black\n  ],\n  [\n    new Palette.Color(255, 244, 211),\n    new Palette.Color(207, 145, 79),\n    new Palette.Color(38, 83, 122),\n    new Palette.Color(178, 87, 53),\n    new Palette.Color(235, 192, 92),\n    new Palette.Color(226, 82, 87),\n    absolute_black\n  ],\n  [\n    new Palette.Color(191, 178, 138),\n    new Palette.Color(115, 44, 3),\n    new Palette.Color(89, 81, 57),\n    new Palette.Color(217, 210, 176),\n    new Palette.Color(242, 239, 220),\n    new Palette.Color(22, 33, 44),\n    absolute_white\n  ],\n  [\n    absolute_white,\n    new Palette.Color(151, 41, 164),\n    new Palette.Color(1, 120, 186),\n    new Palette.Color(255, 255, 0),\n    new Palette.Color(255, 51, 148),\n    absolute_black,\n    absolute_black\n  ],\n  [\n    new Palette.Color(39, 6, 54),\n    new Palette.Color(69, 26, 87),\n    new Palette.Color(252, 25, 246),\n    new Palette.Color(52, 255, 253),\n    new Palette.Color(133, 102, 193),\n    new Palette.Color(253, 228, 252),\n    absolute_white\n  ]\n];\n\n\nfor (var key in statics){\n  Palette[key] = statics[key];\n}\n\nfunction PaletteColor( r, g, b, a ) {\n  if (1 === arguments.length) {\n    Color.apply(this, [r, r, r, 1]);\n  } else if ( 3 === arguments.length ){\n    Color.apply(this, [r, g, b, 1]);\n  } else {\n    Color.apply(this, arguments);\n  }\n}\n\n\n\n\n//@ sourceURL=palette/index.js"
-));
-require.register("palette/statics.js", Function("exports, require, module",
-"module.exports = {\n    MEGURO: 0\n  , MIRO: 1\n  , KANDINSKY: 2\n  , FISCHINGER: 3\n  , SHANGHAI: 4\n  \n  , BACKGROUND: 0\n  , MIDDLE: 1\n  , FOREGROUND: 2\n  , ACCENT: 3\n  , HIGHLIGHT: 4\n  , WHITE: 5\n  , BLACK: 6\n}\n//@ sourceURL=palette/statics.js"
-));
-require.register("router/index.js", Function("exports, require, module",
-"module.exports = Router;\n\nfunction Router(app, depth, debug){\n\n  this.debug = debug || false;\n  this.depth = depth || 128;\n  \n  this._app = app;\n  this._damp = 0.0125;\n  this._raw_frequencies = [];\n  this._smooth_frequencies = [];\n  this._max_amplitude = 0.0;\n  this.initialize();\n}\n\nRouter.prototype.initialize = function() {\n  \n};\n\nRouter.prototype.getBand = function(index, smooth_) {\n  return 1.0;\n};\n\nRouter.prototype.getDepth = function() {\n  return this.depth;\n};\n\nRouter.prototype.getDamp = function() {\n  return this._damp;\n};\n\nRouter.prototype.setDebug = function(debug) {\n  this.debug = debug;\n};\n\nRouter.prototype.setDepth = function(depth) {\n  this.depth = depth;\n  this.initialize();\n};\n\nRouter.prototype.setDamp = function(damp) {\n  this._damp = damp;\n};\n\nRouter.prototype.isHat = function() {\n  return true;\n};\n\nRouter.prototype.isKick = function() {\n  return true;\n};\n\nRouter.prototype.isOnset = function() {\n  return true;\n};\n\nRouter.prototype.isRange = function(low, high, threshold) {\n  return true;\n};\n\nRouter.prototype.isSnare = function() {\n  return false;\n};\n\nRouter.prototype.setSensitivity = function(sensitivity) {\n  //\n};\n\n\nRouter.prototype.update = function() {\n  \n};\n\nRouter.prototype.render = function() {\n};\n\nRouter.prototype.stop = function() {\n};\n\nRouter.prototype._ease = function(current, target, increment) {\n  var difference = target - current;\n  if (Math.abs(difference) <= increment) {\n    current = target;\n  } else {\n    current += difference * increment;\n  }\n  return current;\n};\n//@ sourceURL=router/index.js"
-));
-require.register("piston/index.js", Function("exports, require, module",
-"var inherit = require( 'inherit' )\n  , Tween = require( 'tween' )\n  , Neuron = require( 'neuron' );\n\nmodule.exports = Piston;\n\nfunction Piston( app, duration ){\n\n  Neuron.apply(this, arguments);\n  this.duration = duration;\n  this.initialize();\n\n}\n\ninherit( Piston, Neuron );\n\nPiston.prototype.initialize = function(x, y, w, h) {\n\n  if (this.playing) return;\n  \n  var size = this.getStageSize();\n\n  if (4 === arguments.length) {\n\n    this._w = w;\n    this._h = h;\n    this._x = x;\n    this._y = y;\n\n  } else {\n\n    this._w = size.width / 2;\n    this._h = size.height / 6;\n    this._x = (size.width - this._w) / 2;\n    this._y = (size.height - this._h) /2;\n\n  }\n  \n  this.w = 0;\n  this.h = this._h;\n  this.x = this._x;\n  this.y = this._y;\n};\n\nPiston.prototype.render = function() {\n\n  if (!this.playing) return;\n\n  // ctx.noStroke();\n  this._app.fillStyle = this.pigment.toString();\n  this._app.fillRect(this.x, this.y, this.w, this.h);\n\n};\n\nPiston.prototype.play = function() {\n  if (this.playing) return;\n  this._animate_in();\n};\n\nPiston.prototype._animate_in = function() {\n\n  this.playing = true;\n  this._reset();\n\n  var self = this\n    , from = { w: this.w }\n    , to = { w: this._w }\n    , tween = Tween( from )\n      .to( to )\n      .ease( this.easing )\n      .duration( this.duration )\n      .update( function( o ){\n        self.w = o.w;\n      } )\n      .on( 'end', function(){\n        self._animate_out();\n        self._removeTween( this )\n      } );\n  this._tweens.push( tween );\n};\n\nPiston.prototype._animate_out = function() {\n  var self = this;\n\n  var from = { x: this.x, w: this.w }\n    , to = { x: this._w + this._x, w: 0 }\n    , tween = Tween( from )\n      .to( to )\n      .ease( this.easing )\n      .duration( this.duration )\n      .update( function( o ){\n        self.x = o.x;\n        self.w = o.w;\n      } )\n      .on( 'end', function(){\n        self._animate_end();\n        self._removeTween( this );\n      } )\n  this._tweens.push( tween );\n};\n\nPiston.prototype._animate_end = function() {\n  this._reset();\n  this.playing = false;\n};\n\nPiston.prototype._reset = function() {\n  this.w = 0;\n  this.x = this._x;\n};\n//@ sourceURL=piston/index.js"
-));
-require.register("engine/index.js", Function("exports, require, module",
-"var Piston = require('piston');\n\nmodule.exports = Engine;\n\nfunction Engine(router, x, y, width, height){\n  \n  this._pistons = [];\n  this._amount = 8;\n  this._pigment = '#000';\n  this._router = router;\n  this._app = router._app;\n\n  this._ox = x;\n  this._oy = y;\n\n  this.w = width;\n  this.h = height;\n  this.x = x- (this.w / 2);\n  this.y = y - (this.h / 2);\n\n  this.gutter = 0;\n  this.duration = 0.15 * 1000;\n  this.delay = 0;\n  this.initialize();\n}\n\nEngine.prototype.isPlaying = function() {\n\n  var result = false;\n  for (var i = 0; i < this._amount; i += 1) {\n    var piston = this._pistons[i];\n    if ( piston.playing ) {\n      result = true;\n      break;\n    }\n  }\n  return result;\n};\n\nEngine.prototype.setColor = function(color) {\n  this._pigment = color;\n};\n\nEngine.prototype.setAmount = function(amount) {\n  this._amount = amount;\n};\n\nEngine.prototype.setDelay = function(delay) {\n  this.delay = delay;\n};\n\nEngine.prototype.setDimensions = function(width, height) {\n  this.w = width;\n  this.h = height;\n  this.x = this._ox - (width / 2);\n  this.y = this._oy - (height / 2);\n};\n\nEngine.prototype.initialize = function() {\n  if (this._amount <= 1) {\n    this.gutter = 0;\n  } else {\n    this.gutter = this.h / (this._amount * 4);\n  }\n\n  var offsetH = (this.h / this._amount) - this.gutter;\n\n  for (var i = 0; i < this._amount; i += 1) {\n    \n    var piston = this._pistons[i] = new Piston(this._app, this.duration)\n      , offsetY = (i / this._amount) * this.h + this.y + this.gutter / 2;\n\n    piston.initialize(this.x, offsetY, this.w, offsetH);\n    piston.setDelay(this.delay * i);\n    piston.setColor(this._pigment);\n\n  }\n};\n\nEngine.prototype.play = function() {\n  for ( var i = 0; i < this._amount; i += 1 ) {\n    this._pistons[i].play();\n  }\n};\n\nEngine.prototype.render = function() {\n  for ( var i = 0; i < this._amount; i += 1 ) {\n    this._pistons[i].render();\n  }\n};\n\nEngine.prototype.update = function() {\n  for ( var i = 0; i < this._amount; i += 1 ) {\n    this._pistons[i].update();\n  }\n};\n//@ sourceURL=engine/index.js"
-));
-require.register("perform/index.js", Function("exports, require, module",
-"\n/**\n * Neuronal Synchrony\n * \n * A collection of two dimensional animations\n * that are triggered by sound.\n * \n * It is dependent on minim and Ani Processing\n * libraries, which can be found on the\n * Processing website.\n *\n * This application is meant to be used for live\n * performances and subtly takes in the microphone\n * or current line-in's frequencies. Currently,\n * the main interaction is through keyboard input,\n * although I'd like to change this to Monome.\n *\n * @jonobr1\n *\n * JS fork by @mnmly\n */\n\nvar Sketch = require( 'sketch' )\n  , autoscale = require('autoscale-canvas')\n  , Palette = require( 'palette' )\n  , Router = require( 'router' )\n  , Record = require( 'record' )\n  , Suspension = require( 'suspension' )\n  , Moon = require( 'moon' )\n  , Prism = require( 'prism' )\n  , Clay = require( 'clay' )\n  , Engine = require( 'engine' )\n  , Squiggle = require( 'squiggle' )\n  , Pinwheel = require( 'pinwheel' )\n  , Debug = require( 'debug' )\n  , debug = Debug('neuronal:perform')\n  \n\nDebug.enable('*')\n\nmodule.exports = Perform;\n\nfunction Perform(){\n  \n  var self = this\n    , firstFrame = false\n    , setup = this.setup.bind( this )\n    , update = this.update.bind( this )\n    , draw = this.draw.bind( this )\n    , keyup = this.keyup.bind( this )\n    , touchend = this.touchend.bind( this )\n    , drawLines = false\n    , params = {\n        setup: setup\n      , update: update\n      , draw: draw\n      , keyup: keyup\n      , touchend: touchend\n      // , width: width\n      // , height: height\n    }\n\n  this.app = Sketch.create( params );\n  autoscale( document.querySelector('canvas') );\n\n  this.app.frameCount = 0;\n  var width = this.app.width\n    , height = this.app.height;\n  \n  // this.record = new Record();\n  \n  this.router = new Router( this.app, 128, false );\n\n  this.palette = new Palette();\n  \n  this.bg = this.palette.getColor( Palette.BACKGROUND );\n  \n  this.suspension = new Suspension( this.app, 500 );\n  this.suspension.setColor( this.palette.getColor( Palette.WHITE ) );\n  \n  this.suspension1 = new Suspension( this.app, 1000 );\n  this.suspension1.setColor( this.palette.getColor( Palette.WHITE ) );\n\n  this.suspension2 = new Suspension( this.app, 750 );\n  this.suspension2.setColor( this.palette.getColor( Palette.WHITE ) );\n\n  this.engine = new Engine( this.router, width / 2, height / 2, width * 0.75, height / 2 );\n  this.engine.setColor( this.palette.getColor( Palette.WHITE ) );\n  this.engine.initialize();\n  \n  this.engineReverse = new Engine( this.router, width / 2, height / 2, -width * 0.75, height / 2 );\n  this.engineReverse.setColor( this.palette.getColor( Palette.WHITE ) );\n  this.engineReverse.initialize();\n  \n  this.moon = new Moon( this.app, 250 );\n  this.moon.setColor( this.palette.getColor( Palette.FOREGROUND ) );\n\n  this.prism = new Prism( this.app, 500 );\n  this.prism.setColor( this.palette.getColor( Palette.BLACK ) );\n  \n  this.prism1 = new Prism( this.app, 500 );\n  this.prism1.setColor( this.palette.getColor( Palette.BLACK ) );\n  \n  this.clay = new Clay( this.app, 500 );\n  this.clay.setColor( this.palette.getColor( Palette.MIDDLE) );\n  \n  this.pinwheel = new Pinwheel( this.app, 1000);\n  this.pinwheel.setColor( this.palette.getColor( Palette.ACCENT ) );\n  \n  this.squiggle = new Squiggle( this.app, 500 );\n  this.squiggle.setColor( this.palette.getColor( Palette.HIGHLIGHT ) );\n\n  window.addEventListener('devicemotion', function (e) {\n    x1 = e.accelerationIncludingGravity.x;\n    y1 = e.accelerationIncludingGravity.y;\n    z1 = e.accelerationIncludingGravity.z;\n    Math.abs( e.acceleration.x ) > 3 && self.palette.next();\n  }, false);\n}\n\n\nPerform.prototype.setup = function() {\n  debug( 'setting up' );\n\n}\n\nPerform.prototype.letters = [ [ ['E'], ['R'], ['M'] ],\n                              [ ['P'], ['L'], ['S'] ],\n                              [ ['D'], ['A'], ['C'] ],\n                              [ ['O'], ['W'], ['Y'] ] ];\n\nPerform.prototype.touchend = function( e ) {\n\n  var width = this.app.width\n    , height = this.app.height;\n\n  for ( var i = 0; i < e.changedTouches.length; i += 1 ) {\n    var t = e.changedTouches[i]\n      , col = floor( t.clientX / width * 3 )\n      , row = floor( t.clientY / height * 4 )\n    this.keyup( this.letters[row][col] );\n  }\n\n};\n\nPerform.prototype.keyup = function( e ) {\n\n  var key = e.keyCode ? String.fromCharCode( e.keyCode ) : e\n    , width = this.app.width\n    , height = this.app.height;\n\n  debug( 'KEY PRESSED:', key );\n  \n  if ( !this.engineReverse.isPlaying() && key == 'e' || key == 'E' ) {\n\n    var amp = this.router.getBand( this.router.depth / 4, false );\n    this.engine.setAmount( map( amp, 0, 1, 1, 12 ) );\n    if ( this.randomize ) {\n      this.engine.setDimensions( random( width / 4, width), map(amp, 0, 1, height / 8, height) );\n    }\n    this.engine.initialize();\n    this.engine.play();\n  \n  } else if ( !this.engine.isPlaying() && key == 'r' || key == 'R' ) {\n\n    var amp = this.router.getBand( this.router.depth / 4, false );\n    this.engineReverse.setAmount( map( amp, 0, 1, 1, 12 ) );\n    if ( this.randomize ) {\n      this.engine.setDimensions( random( width / 4, width), map( amp, 0, 1, height / 8, height ));\n    }\n    this.engineReverse.initialize();\n    this.engineReverse.play();\n\n  } else if ( key == 'm' || key == 'M' ) {\n    \n    if ( this.randomize ) {\n      this.moon.setAngle( random( TWO_PI ) );\n      this.moon.initialize();\n    } else {\n      this.moon.setAngle( 0 );\n      this.moon.initialize();\n    }\n    this.moon.play();\n  \n  } else if (key == 'p' || key == 'P') {\n\n    var amp = this.router.getBand( this.router.depth - this.router.depth / 4, false );\n    this.prism.setAmount( floor( map( amp, 0, 1, 3, 12) ) );\n    this.prism.play();\n  \n  } else if (key == 'l' || key == 'L') {\n\n    var amp = this.router.getBand( this.router.depth - this.router.depth / 4, false );\n    this.prism1.setAmount( floor( map( amp, 0, 1, 3, 12) ) );\n    this.prism1.play();\n  \n  } else if (key == 's' || key == 'S') {\n\n    var amp = this.router.getBand( this.router.depth - this.router.depth / 10, false );\n    if ( this.randomize ) {\n      this.suspension.setAmount( parseInt( map( amp, 0, 1, 8, 32 ), 10 ) );\n    }\n    this.suspension.setTheta( random( TWO_PI ) );\n    this.suspension.initialize();\n    this.suspension.play();\n  \n  } else if (key == 'd' || key == 'D') {\n\n    var amp = this.router.getBand( this.router.depth - this.router.depth / 10, false );\n    if ( this.randomize ) {\n      this.suspension1.setAmount( map( amp, 0, 1, 8, 32 ) );\n    }\n    this.suspension1.setTheta( random( TWO_PI ) );\n    this.suspension1.initialize();\n    this.suspension1.play();\n  \n  } else if (key == 'a' || key == 'A') {\n    var amp = this.router.getBand( this.router.depth - this.router.depth / 10, false);\n    if ( this.randomize ) {\n      this.suspension2.setAmount( map( amp, 0, 1, 8, 32 ) );\n    }\n    this.suspension2.setTheta( random( TWO_PI ) );\n    this.suspension2.initialize();\n    this.suspension2.play();\n  \n  } else if ( key =='c' || key == 'C' ) {\n\n    this.clay.setAmount( floor( random( 8, 16 ) ) );\n    var x, y, pos = random( 8 );\n    if ( pos > 7 ) {\n      // north\n      x = width / 2;\n      y = 0;\n    } else if ( pos > 6 ) {\n      // north-west\n      x = 0;\n      y = 0;\n    } else if ( pos > 5 ) {\n      // west\n      x = 0;\n      y = height / 2;\n    } else if (pos > 4) {\n      // south-west\n      x = 0;\n      y = height;\n    } else if (pos > 3) {\n      // south\n      x = width / 2;\n      y = height;\n    }  else if (pos > 2) {\n      // south-east\n      x = width;\n      y = height;\n    } else if (pos > 1) {\n      // east\n      x = width;\n      y = height / 2;\n    } else {\n      x = width;\n      y = 0;\n    }\n    this.clay.setOrigin( x, y );\n    this.clay.setImpact( random( width ), random( height ) );\n    this.clay.initialize();\n    this.clay.play();\n  \n  } else if (key == 'o' || key == 'O') {\n    var amp = this.router.getBand( this.router.depth / 2, false );\n    this.pinwheel.setAmount( map( amp, 0, 1, 4, 10 ) );\n    if ( this.randomize ) {\n      var startAngle = random( TWO_PI )\n        , endAngle = random( startAngle, TWO_PI );\n      this.pinwheel.setAngles( startAngle, endAngle );\n    } else {\n      this.pinwheel.setAngles( 0, TWO_PI );\n    }\n    this.pinwheel.setDrift( random( TWO_PI ) );\n    this.pinwheel.initialize();\n    this.pinwheel.play();\n  \n  } else if (key == 'w' || key == 'W') {\n    if ( this.randomize ) {\n      this.squiggle.setAngle( random( TWO_PI ) );\n    }\n    this.squiggle.setRevolutions( random( 0.25, 6 ) );\n    this.squiggle.setAmplitude( random( this.app.height / 8, this.app.height / 3 ) );\n    this.squiggle.setDistance( random( this.app.width / 8, this.app.width / 2 ) );\n    this.squiggle.initialize();\n    this.squiggle.play();\n\n  } else if ( !isNaN( key ) ) {\n    //      palette.choose((int) key);\n    this.palette.next();\n  }\n  else if (key == 'y' || key == 'Y') {\n    this.randomize = !this.randomize;\n  }\n  // this.record.add( key );\n};\n\nPerform.prototype.draw = function(){\n  \n  if ( this.app ){\n\n    this.app.fillStyle = this.bg.toString();\n    this.app.fillRect(0, 0, this.app.width, this.app.height);\n    \n    if ( this.drawLines ){\n      this.app.strokeStyle = this.palette.getColor( 3 ).toString();\n      \n      for ( var i = 1; i <= 3; i += 1 ) {\n        this.app.moveTo( this.app.width / 3 * i, 0 )\n        this.app.lineTo( this.app.width / 3 * i, this.app.height );\n      }\n      \n      for ( var i = 1; i <= 4; i += 1 ) {\n        this.app.moveTo( 0, this.app.height / 4 * i )\n        this.app.lineTo( this.app.width, this.app.height / 4 * i)\n      }\n\n      this.app.stroke();\n    }\n\n    this.clay.render();  \n    this.prism.render();\n    this.prism1.render();\n\n    this.engineReverse.render();\n    this.moon.render();\n    this.pinwheel.render();\n\n    this.engine.render();\n    this.squiggle.render();\n    this.suspension.render();\n    this.suspension1.render();\n    this.suspension2.render();\n  }\n}\n\nPerform.prototype.update = function() {\n\n  if (this.app){\n\n    this.app.frameCount++;\n    \n    this.router.update();\n    this.palette.update();\n\n    this.clay.update();  \n    this.prism.update();\n    this.prism1.update();\n\n    this.engineReverse.update();\n    this.moon.update();\n    this.pinwheel.update();\n\n    this.engine.update();\n    this.squiggle.update();\n    this.suspension.update();\n    this.suspension1.update();\n    this.suspension2.update();\n\n  }\n\n};\n\n//@ sourceURL=perform/index.js"
-));
+require.register("component-vector/index.js", function(exports, require, module){
+
+/**
+ * Expose `Vector`.
+ */
+
+module.exports = Vector;
+
+/**
+ * Initialize a new `Vector` with x / y.
+ *
+ * @param {Number} x
+ * @param {Number} y
+ * @api public
+ */
+
+function Vector(x, y) {
+  if (!(this instanceof Vector)) return new Vector(x, y);
+  this.x = x;
+  this.y = y;
+}
+
+/**
+ * Return a negated vector.
+ *
+ * @return {Vector}
+ * @api public
+ */
+
+Vector.prototype.negate = function(){
+  return new Vector(-this.x, -this.y);
+};
+
+/**
+ * Add x / y.
+ *
+ * @param {Vector} p
+ * @return {Vector} new vector
+ * @api public
+ */
+
+Vector.prototype.add = function(v){
+  return new Vector(this.x + v.x, this.y + v.y);
+};
+
+/**
+ * Sub x / y.
+ *
+ * @param {Vector} p
+ * @return {Vector} new vector
+ * @api public
+ */
+
+Vector.prototype.sub = function(v){
+  return new Vector(this.x - v.x, this.y - v.y);
+};
+
+/**
+ * Multiply x / y.
+ *
+ * @param {Vector} p
+ * @return {Vector} new vector
+ * @api public
+ */
+
+Vector.prototype.mul = function(v){
+  return new Vector(this.x * v.x, this.y * v.y);
+};
+
+/**
+ * Divide x / y.
+ *
+ * @param {Vector} p
+ * @return {Vector} new vector
+ * @api public
+ */
+
+Vector.prototype.div = function(v){
+  return new Vector(this.x / v.x, this.y / v.y);
+};
+
+/**
+ * Check if these vectors are the same.
+ *
+ * @param {Vector} p
+ * @return {Boolean}
+ * @api public
+ */
+
+Vector.prototype.equals = function(v){
+  return this.x == v.x && this.y == v.y;
+};
+
+/**
+ * Return a clone of this vector.
+ *
+ * @return {Vector} new vector
+ * @api public
+ */
+
+Vector.prototype.clone = function(){
+  return new Vector(this.x, this.y);
+};
+
+/**
+ * Return angle in radians.
+ *
+ * @return {Number}
+ * @api public
+ */
+
+Vector.prototype.angle = function(){
+  return Math.atan2(this.x, this.y);
+};
+
+/**
+ * Return angle in degrees.
+ *
+ * @return {Number}
+ * @api public
+ */
+
+Vector.prototype.degrees = function(){
+  return this.angle() * 180 / Math.PI;
+};
+
+/**
+ * Return the distance between vectors.
+ *
+ * @param {Vector} v
+ * @return {Number}
+ * @api public
+ */
+
+Vector.prototype.distance = function(v){
+  var x = this.x - v.x;
+  var y = this.y - v.y;
+  return Math.sqrt(x * x + y * y);
+};
+
+/**
+ * Return the linear interpolation between vectors given a step point.
+ *
+ * @param {Vector} v
+ * @param {Number} a
+ * @return {Vector}
+ * @api public
+ */
+
+Vector.prototype.interpolated = function(v, a){
+  return new Vector(this.x * (1 - a) + v.x * a, this.y * (1 - a) + v.y * a);
+};
+
+/**
+ * Return the middle position between vectors.
+ *
+ * @param {Vector} v
+ * @return {Vector}
+ * @api public
+ */
+
+Vector.prototype.middle = function(v){
+  return this.interpolated(v, .5);
+};
+
+/**
+ * Return "(x, y)" string representation.
+ *
+ * @return {String}
+ * @api public
+ */
+
+Vector.prototype.toString = function(){
+  return '(' + this.x + ', ' + this.y + ')';
+};
+
+
+
+
+});
+require.register("component-emitter/index.js", function(exports, require, module){
+
+/**
+ * Expose `Emitter`.
+ */
+
+module.exports = Emitter;
+
+/**
+ * Initialize a new `Emitter`.
+ *
+ * @api public
+ */
+
+function Emitter(obj) {
+  if (obj) return mixin(obj);
+};
+
+/**
+ * Mixin the emitter properties.
+ *
+ * @param {Object} obj
+ * @return {Object}
+ * @api private
+ */
+
+function mixin(obj) {
+  for (var key in Emitter.prototype) {
+    obj[key] = Emitter.prototype[key];
+  }
+  return obj;
+}
+
+/**
+ * Listen on the given `event` with `fn`.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.on = function(event, fn){
+  this._callbacks = this._callbacks || {};
+  (this._callbacks[event] = this._callbacks[event] || [])
+    .push(fn);
+  return this;
+};
+
+/**
+ * Adds an `event` listener that will be invoked a single
+ * time then automatically removed.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.once = function(event, fn){
+  var self = this;
+  this._callbacks = this._callbacks || {};
+
+  function on() {
+    self.off(event, on);
+    fn.apply(this, arguments);
+  }
+
+  fn._off = on;
+  this.on(event, on);
+  return this;
+};
+
+/**
+ * Remove the given callback for `event` or all
+ * registered callbacks.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.off =
+Emitter.prototype.removeListener =
+Emitter.prototype.removeAllListeners = function(event, fn){
+  this._callbacks = this._callbacks || {};
+
+  // all
+  if (0 == arguments.length) {
+    this._callbacks = {};
+    return this;
+  }
+
+  // specific event
+  var callbacks = this._callbacks[event];
+  if (!callbacks) return this;
+
+  // remove all handlers
+  if (1 == arguments.length) {
+    delete this._callbacks[event];
+    return this;
+  }
+
+  // remove specific handler
+  var i = callbacks.indexOf(fn._off || fn);
+  if (~i) callbacks.splice(i, 1);
+  return this;
+};
+
+/**
+ * Emit `event` with the given args.
+ *
+ * @param {String} event
+ * @param {Mixed} ...
+ * @return {Emitter}
+ */
+
+Emitter.prototype.emit = function(event){
+  this._callbacks = this._callbacks || {};
+  var args = [].slice.call(arguments, 1)
+    , callbacks = this._callbacks[event];
+
+  if (callbacks) {
+    callbacks = callbacks.slice(0);
+    for (var i = 0, len = callbacks.length; i < len; ++i) {
+      callbacks[i].apply(this, args);
+    }
+  }
+
+  return this;
+};
+
+/**
+ * Return array of callbacks for `event`.
+ *
+ * @param {String} event
+ * @return {Array}
+ * @api public
+ */
+
+Emitter.prototype.listeners = function(event){
+  this._callbacks = this._callbacks || {};
+  return this._callbacks[event] || [];
+};
+
+/**
+ * Check if this emitter has `event` handlers.
+ *
+ * @param {String} event
+ * @return {Boolean}
+ * @api public
+ */
+
+Emitter.prototype.hasListeners = function(event){
+  return !! this.listeners(event).length;
+};
+
+});
+require.register("component-ease/index.js", function(exports, require, module){
+
+exports.linear = function(n){
+  return n;
+};
+
+exports.inQuad = function(n){
+  return n * n;
+};
+
+exports.outQuad = function(n){
+  return n * (2 - n);
+};
+
+exports.inOutQuad = function(n){
+  n *= 2;
+  if (n < 1) return 0.5 * n * n;
+  return - 0.5 * (--n * (n - 2) - 1);
+};
+
+exports.inCube = function(n){
+  return n * n * n;
+};
+
+exports.outCube = function(n){
+  return --n * n * n + 1;
+};
+
+exports.inOutCube = function(n){
+  n *= 2;
+  if (n < 1) return 0.5 * n * n * n;
+  return 0.5 * ((n -= 2 ) * n * n + 2);
+};
+
+exports.inQuart = function(n){
+  return n * n * n * n;
+};
+
+exports.outQuart = function(n){
+  return 1 - (--n * n * n * n);
+};
+
+exports.inOutQuart = function(n){
+  n *= 2;
+  if (n < 1) return 0.5 * n * n * n * n;
+  return -0.5 * ((n -= 2) * n * n * n - 2);
+};
+
+exports.inQuint = function(n){
+  return n * n * n * n * n;
+}
+
+exports.outQuint = function(n){
+  return --n * n * n * n * n + 1;
+}
+
+exports.inOutQuint = function(n){
+  n *= 2;
+  if (n < 1) return 0.5 * n * n * n * n * n;
+  return 0.5 * ((n -= 2) * n * n * n * n + 2);
+};
+
+exports.inSine = function(n){
+  return 1 - Math.cos(n * Math.PI / 2 );
+};
+
+exports.outSine = function(n){
+  return Math.sin(n * Math.PI / 2);
+};
+
+exports.inOutSine = function(n){
+  return .5 * (1 - Math.cos(Math.PI * n));
+};
+
+exports.inExpo = function(n){
+  return 0 == n ? 0 : Math.pow(1024, n - 1);
+};
+
+exports.outExpo = function(n){
+  return 1 == n ? n : 1 - Math.pow(2, -10 * n);
+};
+
+exports.inOutExpo = function(n){
+  if (0 == n) return 0;
+  if (1 == n) return 1;
+  if ((n *= 2) < 1) return .5 * Math.pow(1024, n - 1);
+  return .5 * (-Math.pow(2, -10 * (n - 1)) + 2);
+};
+
+exports.inCirc = function(n){
+  return 1 - Math.sqrt(1 - n * n);
+};
+
+exports.outCirc = function(n){
+  return Math.sqrt(1 - (--n * n));
+};
+
+exports.inOutCirc = function(n){
+  n *= 2
+  if (n < 1) return -0.5 * (Math.sqrt(1 - n * n) - 1);
+  return 0.5 * (Math.sqrt(1 - (n -= 2) * n) + 1);
+};
+
+exports.inBack = function(n){
+  var s = 1.70158;
+  return n * n * (( s + 1 ) * n - s);
+};
+
+exports.outBack = function(n){
+  var s = 1.70158;
+  return --n * n * ((s + 1) * n + s) + 1;
+};
+
+exports.inOutBack = function(n){
+  var s = 1.70158 * 1.525;
+  if ( ( n *= 2 ) < 1 ) return 0.5 * ( n * n * ( ( s + 1 ) * n - s ) );
+  return 0.5 * ( ( n -= 2 ) * n * ( ( s + 1 ) * n + s ) + 2 );
+};
+
+exports.inBounce = function(n){
+  return 1 - exports.outBounce(1 - n);
+};
+
+exports.outBounce = function(n){
+  if ( n < ( 1 / 2.75 ) ) {
+    return 7.5625 * n * n;
+  } else if ( n < ( 2 / 2.75 ) ) {
+    return 7.5625 * ( n -= ( 1.5 / 2.75 ) ) * n + 0.75;
+  } else if ( n < ( 2.5 / 2.75 ) ) {
+    return 7.5625 * ( n -= ( 2.25 / 2.75 ) ) * n + 0.9375;
+  } else {
+    return 7.5625 * ( n -= ( 2.625 / 2.75 ) ) * n + 0.984375;
+  }
+};
+
+exports.inOutBounce = function(n){
+  if (n < .5) return exports.inBounce(n * 2) * .5;
+  return exports.outBounce(n * 2 - 1) * .5 + .5;
+};
+
+// aliases
+
+exports['in-quad'] = exports.inQuad;
+exports['out-quad'] = exports.outQuad;
+exports['in-out-quad'] = exports.inOutQuad;
+exports['in-cube'] = exports.inCube;
+exports['out-cube'] = exports.outCube;
+exports['in-out-cube'] = exports.inOutCube;
+exports['in-quart'] = exports.inQuart;
+exports['out-quart'] = exports.outQuart;
+exports['in-out-quart'] = exports.inOutQuart;
+exports['in-quint'] = exports.inQuint;
+exports['out-quint'] = exports.outQuint;
+exports['in-out-quint'] = exports.inOutQuint;
+exports['in-sine'] = exports.inSine;
+exports['out-sine'] = exports.outSine;
+exports['in-out-sine'] = exports.inOutSine;
+exports['in-expo'] = exports.inExpo;
+exports['out-expo'] = exports.outExpo;
+exports['in-out-expo'] = exports.inOutExpo;
+exports['in-circ'] = exports.inCirc;
+exports['out-circ'] = exports.outCirc;
+exports['in-out-circ'] = exports.inOutCirc;
+exports['in-back'] = exports.inBack;
+exports['out-back'] = exports.outBack;
+exports['in-out-back'] = exports.inOutBack;
+exports['in-bounce'] = exports.inBounce;
+exports['out-bounce'] = exports.outBounce;
+exports['in-out-bounce'] = exports.inOutBounce;
+
+});
+require.register("component-tween/index.js", function(exports, require, module){
+
+/**
+ * Module dependencies.
+ */
+
+var Emitter = require('emitter')
+  , ease = require('ease');
+
+/**
+ * Expose `Tween`.
+ */
+
+module.exports = Tween;
+
+/**
+ * Initialize a new `Tween` with `obj`.
+ *
+ * @param {Object|Array} obj
+ * @api public
+ */
+
+function Tween(obj) {
+  if (!(this instanceof Tween)) return new Tween(obj);
+  this._from = obj;
+  this.ease('linear');
+  this.duration(500);
+}
+
+/**
+ * Mixin emitter.
+ */
+
+Emitter(Tween.prototype);
+
+/**
+ * Reset the tween.
+ *
+ * @api public
+ */
+
+Tween.prototype.reset = function(){
+  this.isArray = Array.isArray(this._from);
+  this._curr = clone(this._from);
+  this._done = false;
+  this._start = Date.now();
+  return this;
+};
+
+/**
+ * Tween to `obj` and reset internal state.
+ *
+ *    tween.to({ x: 50, y: 100 })
+ *
+ * @param {Object|Array} obj
+ * @return {Tween} self
+ * @api public
+ */
+
+Tween.prototype.to = function(obj){
+  this.reset();
+  this._to = obj;
+  return this;
+};
+
+/**
+ * Set duration to `ms` [500].
+ *
+ * @param {Number} ms
+ * @return {Tween} self
+ * @api public
+ */
+
+Tween.prototype.duration = function(ms){
+  this._duration = ms;
+  return this;
+};
+
+/**
+ * Set easing function to `fn`.
+ *
+ *    tween.ease('in-out-sine')
+ *
+ * @param {String|Function} fn
+ * @return {Tween}
+ * @api public
+ */
+
+Tween.prototype.ease = function(fn){
+  fn = 'function' == typeof fn ? fn : ease[fn];
+  if (!fn) throw new TypeError('invalid easing function');
+  this._ease = fn;
+  return this;
+};
+
+/**
+ * Stop the tween and immediately emit "stop" and "end".
+ *
+ * @return {Tween}
+ * @api public
+ */
+
+Tween.prototype.stop = function(){
+  this.stopped = true;
+  this._done = true;
+  this.emit('stop');
+  this.emit('end');
+  return this;
+};
+
+/**
+ * Perform a step.
+ *
+ * @return {Tween} self
+ * @api private
+ */
+
+Tween.prototype.step = function(){
+  if (this._done) return;
+
+  // duration
+  var duration = this._duration;
+  var now = Date.now();
+  var delta = now - this._start;
+  var done = delta >= duration;
+
+  // complete
+  if (done) {
+    this._from = this._to;
+    this._update(this._to);
+    this._done = true;
+    this.emit('end');
+    return this;
+  }
+
+  // tween
+  var from = this._from;
+  var to = this._to;
+  var curr = this._curr;
+  var fn = this._ease;
+  var p = (now - this._start) / duration;
+  var n = fn(p);
+
+  // array
+  if (this.isArray) {
+    for (var i = 0; i < from.length; ++i) {
+      curr[i] = from[i] + (to[i] - from[i]) * n;
+    }
+
+    this._update(curr);
+    return this;
+  }
+
+  // objech
+  for (var k in from) {
+    curr[k] = from[k] + (to[k] - from[k]) * n;
+  }
+
+  this._update(curr);
+  return this;
+};
+
+/**
+ * Set update function to `fn` or
+ * when no argument is given this performs
+ * a "step".
+ *
+ * @param {Function} fn
+ * @return {Tween} self
+ * @api public
+ */
+
+Tween.prototype.update = function(fn){
+  if (0 == arguments.length) return this.step();
+  this._update = fn;
+  return this;
+};
+
+/**
+ * Clone `obj`.
+ *
+ * @api private
+ */
+
+function clone(obj) {
+  if (Array.isArray(obj)) return obj.slice();
+  var ret = {};
+  for (var key in obj) ret[key] = obj[key];
+  return ret;
+}
+
+});
+require.register("visionmedia-debug/index.js", function(exports, require, module){
+if ('undefined' == typeof window) {
+  module.exports = require('./lib/debug');
+} else {
+  module.exports = require('./debug');
+}
+
+});
+require.register("visionmedia-debug/debug.js", function(exports, require, module){
+
+/**
+ * Expose `debug()` as the module.
+ */
+
+module.exports = debug;
+
+/**
+ * Create a debugger with the given `name`.
+ *
+ * @param {String} name
+ * @return {Type}
+ * @api public
+ */
+
+function debug(name) {
+  if (!debug.enabled(name)) return function(){};
+
+  return function(fmt){
+    fmt = coerce(fmt);
+
+    var curr = new Date;
+    var ms = curr - (debug[name] || curr);
+    debug[name] = curr;
+
+    fmt = name
+      + ' '
+      + fmt
+      + ' +' + debug.humanize(ms);
+
+    // This hackery is required for IE8
+    // where `console.log` doesn't have 'apply'
+    window.console
+      && console.log
+      && Function.prototype.apply.call(console.log, console, arguments);
+  }
+}
+
+/**
+ * The currently active debug mode names.
+ */
+
+debug.names = [];
+debug.skips = [];
+
+/**
+ * Enables a debug mode by name. This can include modes
+ * separated by a colon and wildcards.
+ *
+ * @param {String} name
+ * @api public
+ */
+
+debug.enable = function(name) {
+  try {
+    localStorage.debug = name;
+  } catch(e){}
+
+  var split = (name || '').split(/[\s,]+/)
+    , len = split.length;
+
+  for (var i = 0; i < len; i++) {
+    name = split[i].replace('*', '.*?');
+    if (name[0] === '-') {
+      debug.skips.push(new RegExp('^' + name.substr(1) + '$'));
+    }
+    else {
+      debug.names.push(new RegExp('^' + name + '$'));
+    }
+  }
+};
+
+/**
+ * Disable debug output.
+ *
+ * @api public
+ */
+
+debug.disable = function(){
+  debug.enable('');
+};
+
+/**
+ * Humanize the given `ms`.
+ *
+ * @param {Number} m
+ * @return {String}
+ * @api private
+ */
+
+debug.humanize = function(ms) {
+  var sec = 1000
+    , min = 60 * 1000
+    , hour = 60 * min;
+
+  if (ms >= hour) return (ms / hour).toFixed(1) + 'h';
+  if (ms >= min) return (ms / min).toFixed(1) + 'm';
+  if (ms >= sec) return (ms / sec | 0) + 's';
+  return ms + 'ms';
+};
+
+/**
+ * Returns true if the given mode name is enabled, false otherwise.
+ *
+ * @param {String} name
+ * @return {Boolean}
+ * @api public
+ */
+
+debug.enabled = function(name) {
+  for (var i = 0, len = debug.skips.length; i < len; i++) {
+    if (debug.skips[i].test(name)) {
+      return false;
+    }
+  }
+  for (var i = 0, len = debug.names.length; i < len; i++) {
+    if (debug.names[i].test(name)) {
+      return true;
+    }
+  }
+  return false;
+};
+
+/**
+ * Coerce `val`.
+ */
+
+function coerce(val) {
+  if (val instanceof Error) return val.stack || val.message;
+  return val;
+}
+
+// persist
+
+if (window.localStorage) debug.enable(localStorage.debug);
+
+});
+require.register("component-autoscale-canvas/index.js", function(exports, require, module){
+
+/**
+ * Retina-enable the given `canvas`.
+ *
+ * @param {Canvas} canvas
+ * @return {Canvas}
+ * @api public
+ */
+
+module.exports = function(canvas){
+  var ctx = canvas.getContext('2d');
+  var ratio = window.devicePixelRatio || 1;
+  if (1 != ratio) {
+    canvas.style.width = canvas.width + 'px';
+    canvas.style.height = canvas.height + 'px';
+    canvas.width *= ratio;
+    canvas.height *= ratio;
+    ctx.scale(ratio, ratio);
+  }
+  return canvas;
+};
+});
+require.register("mnmly-sketch.js/js/sketch.js", function(exports, require, module){
+
+/* Copyright (C) 2013 Justin Windle, http://soulwire.co.uk */
+
+var Sketch = (function() {
+
+    "use strict";
+
+    /*
+    ----------------------------------------------------------------------
+
+        Config
+
+    ----------------------------------------------------------------------
+    */
+
+    var MATH_PROPS = 'E LN10 LN2 LOG2E LOG10E PI SQRT1_2 SQRT2 abs acos asin atan ceil cos exp floor log round sin sqrt tan atan2 pow max min'.split( ' ' );
+    var HAS_SKETCH = '__hasSketch';
+    var M = Math;
+
+    var CANVAS = 'canvas';
+    var WEBGL = 'webgl';
+    var DOM = 'dom';
+
+    var doc = document;
+    var win = window;
+
+    var instances = [];
+
+    var defaults = {
+
+        fullscreen: true,
+        autostart: true,
+        autoclear: true,
+        autopause: true,
+        container: doc.body,
+        interval: 1,
+        globals: true,
+        retina: false,
+        type: CANVAS
+    };
+
+    var keyMap = {
+
+         8: 'BACKSPACE',
+         9: 'TAB',
+        13: 'ENTER',
+        16: 'SHIFT',
+        27: 'ESCAPE',
+        32: 'SPACE',
+        37: 'LEFT',
+        38: 'UP',
+        39: 'RIGHT',
+        40: 'DOWN'
+    };
+
+    /*
+    ----------------------------------------------------------------------
+
+        Utilities
+
+    ----------------------------------------------------------------------
+    */
+
+    function isArray( object ) {
+
+        return Object.prototype.toString.call( object ) == '[object Array]';
+    }
+
+    function isFunction( object ) {
+
+        return typeof object == 'function';
+    }
+
+    function isNumber( object ) {
+
+        return typeof object == 'number';
+    }
+
+    function isString( object ) {
+
+        return typeof object == 'string';
+    }
+
+    function keyName( code ) {
+
+        return keyMap[ code ] || String.fromCharCode( code );
+    }
+
+    function extend( target, source, overwrite ) {
+
+        for ( var key in source )
+
+            if ( overwrite || !target.hasOwnProperty( key ) )
+
+                target[ key ] = source[ key ];
+
+        return target;
+    }
+
+    function proxy( method, context ) {
+
+        return function() {
+
+            method.apply( context, arguments );
+        };
+    }
+
+    function clone( target ) {
+
+        var object = {};
+
+        for ( var key in target ) {
+
+            if ( isFunction( target[ key ] ) )
+
+                object[ key ] = proxy( target[ key ], target );
+
+            else
+
+                object[ key ] = target[ key ];
+        }
+
+        return object;
+    }
+
+    /*
+    ----------------------------------------------------------------------
+
+        Constructor
+
+    ----------------------------------------------------------------------
+    */
+
+    function constructor( context ) {
+
+        var request, handler, target, parent, bounds, index, suffix, clock, node, copy, type, key, val, min, max;
+
+        var counter = 0;
+        var touches = [];
+        var setup = false;
+        var ratio = win.devicePixelRatio;
+        var isDiv = context.type == DOM;
+        var is2D = context.type == CANVAS;
+
+        var mouse = {
+            x:  0.0, y:  0.0,
+            ox: 0.0, oy: 0.0,
+            dx: 0.0, dy: 0.0
+        };
+
+        var eventMap = [
+
+            context.element,
+
+                pointer, 'mousedown', 'touchstart',
+                pointer, 'mousemove', 'touchmove',
+                pointer, 'mouseup', 'touchend',
+                pointer, 'click',
+
+            doc,
+
+                keypress, 'keydown', 'keyup',
+
+            win,
+
+                active, 'focus', 'blur',
+                resize, 'resize'
+        ];
+
+        var keys = {}; for ( key in keyMap ) keys[ keyMap[ key ] ] = false;
+
+        function trigger( method ) {
+
+            if ( isFunction( method ) )
+
+                method.apply( context, [].splice.call( arguments, 1 ) );
+        }
+
+        function bind( on ) {
+
+            for ( index = 0; index < eventMap.length; index++ ) {
+
+                node = eventMap[ index ];
+
+                if ( isString( node ) )
+
+                    target[ ( on ? 'add' : 'remove' ) + 'EventListener' ].call( target, node, handler, false );
+
+                else if ( isFunction( node ) )
+
+                    handler = node;
+
+                else target = node;
+            }
+        }
+
+        function update() {
+
+            cAF( request );
+            request = rAF( update );
+
+            if ( !setup ) {
+
+                trigger( context.setup );
+                setup = isFunction( context.setup );
+                trigger( context.resize );
+            }
+
+            if ( context.running && !counter ) {
+
+                context.dt = ( clock = +new Date() ) - context.now;
+                context.millis += context.dt;
+                context.now = clock;
+
+                trigger( context.update );
+
+                if ( context.autoclear && is2D )
+
+                    context.clear();
+
+                trigger( context.draw );
+            }
+
+            counter = ++counter % context.interval;
+        }
+
+        function resize() {
+
+            target = isDiv ? context.style : context.canvas;
+            suffix = isDiv ? 'px' : '';
+
+            if ( context.fullscreen ) {
+
+                context.height = win.innerHeight;
+                context.width = win.innerWidth;
+            }
+
+            target.height = context.height + suffix;
+            target.width = context.width + suffix;
+
+            if ( context.retina && is2D && ratio ) {
+
+                target.height = context.height * ratio;
+                target.width = context.width * ratio;
+
+                target.style.height = context.height + 'px';
+                target.style.width = context.width + 'px';
+
+                context.scale( ratio, ratio );
+            }
+
+            if ( setup ) trigger( context.resize );
+        }
+
+        function align( touch, target ) {
+
+            bounds = target.getBoundingClientRect();
+
+            touch.x = touch.pageX - bounds.left - win.scrollX;
+            touch.y = touch.pageY - bounds.top - win.scrollY;
+
+            return touch;
+        }
+
+        function augment( touch, target ) {
+
+            align( touch, context.element );
+
+            target = target || {};
+
+            target.ox = target.x || touch.x;
+            target.oy = target.y || touch.y;
+
+            target.x = touch.x;
+            target.y = touch.y;
+
+            target.dx = target.x - target.ox;
+            target.dy = target.y - target.oy;
+
+            return target;
+        }
+
+        function process( event ) {
+
+            event.preventDefault();
+
+            copy = clone( event );
+            copy.originalEvent = event;
+
+            if ( copy.touches ) {
+
+                touches.length = copy.touches.length;
+
+                for ( index = 0; index < copy.touches.length; index++ )
+
+                    touches[ index ] = augment( copy.touches[ index ], touches[ index ] );
+
+            } else {
+
+                touches.length = 0;
+                touches[0] = augment( copy, mouse );
+            }
+
+            extend( mouse, touches[0], true );
+
+            return copy;
+        }
+
+        function pointer( event ) {
+
+            event = process( event );
+
+            min = ( max = eventMap.indexOf( type = event.type ) ) - 1;
+
+            context.dragging =
+
+                /down|start/.test( type ) ? true :
+
+                /up|end/.test( type ) ? false :
+
+                context.dragging;
+
+            while( min )
+
+                isString( eventMap[ min ] ) ?
+
+                    trigger( context[ eventMap[ min-- ] ], event ) :
+
+                isString( eventMap[ max ] ) ?
+
+                    trigger( context[ eventMap[ max++ ] ], event ) :
+
+                min = 0;
+        }
+
+        function keypress( event ) {
+
+            key = event.keyCode;
+            val = event.type == 'keyup';
+            keys[ key ] = keys[ keyName( key ) ] = !val;
+
+            trigger( context[ event.type ], event );
+        }
+
+        function active( event ) {
+
+            if ( context.autopause )
+
+                ( event.type == 'blur' ? stop : start )();
+
+            trigger( context[ event.type ], event );
+        }
+
+        // Public API
+
+        function start() {
+
+            context.now = +new Date();
+            context.running = true;
+        }
+
+        function stop() {
+
+            context.running = false;
+        }
+
+        function toggle() {
+
+            ( context.running ? stop : start )();
+        }
+
+        function clear() {
+
+            if ( is2D )
+
+                context.clearRect( 0, 0, context.width, context.height );
+        }
+
+        function destroy() {
+
+            parent = context.element.parentNode;
+            index = instances.indexOf( context );
+
+            if ( parent ) parent.removeChild( context.element );
+            if ( ~index ) instances.splice( index, 1 );
+
+            bind( false );
+            stop();
+        }
+
+        extend( context, {
+
+            touches: touches,
+            mouse: mouse,
+            keys: keys,
+
+            dragging: false,
+            running: false,
+            millis: 0,
+            now: NaN,
+            dt: NaN,
+
+            destroy: destroy,
+            toggle: toggle,
+            clear: clear,
+            start: start,
+            stop: stop
+        });
+
+        instances.push( context );
+
+        return ( context.autostart && start(), bind( true ), resize(), update(), context );
+    }
+
+    /*
+    ----------------------------------------------------------------------
+
+        Global API
+
+    ----------------------------------------------------------------------
+    */
+
+    var element, context, Sketch = {
+
+        CANVAS: CANVAS,
+        WEB_GL: WEBGL,
+        WEBGL: WEBGL,
+        DOM: DOM,
+
+        instances: instances,
+
+        install: function( context ) {
+
+            if ( !context[ HAS_SKETCH ] ) {
+
+                for ( var i = 0; i < MATH_PROPS.length; i++ )
+
+                    context[ MATH_PROPS[i] ] = M[ MATH_PROPS[i] ];
+
+                extend( context, {
+
+                    TWO_PI: M.PI * 2,
+                    HALF_PI: M.PI / 2,
+                    QUATER_PI: M.PI / 4,
+
+                    random: function( min, max ) {
+
+                        if ( isArray( min ) )
+
+                            return min[ ~~( M.random() * min.length ) ];
+
+                        if ( !isNumber( max ) )
+
+                            max = min || 1, min = 0;
+
+                        return min + M.random() * ( max - min );
+                    },
+
+                    lerp: function( min, max, amount ) {
+
+                        return min + amount * ( max - min );
+                    },
+
+                    map: function( num, minA, maxA, minB, maxB ) {
+
+                        return ( num - minA ) / ( maxA - minA ) * ( maxB - minB ) + minB;
+                    }
+                });
+
+                context[ HAS_SKETCH ] = true;
+            }
+        },
+
+        create: function( options ) {
+
+            options = extend( options || {}, defaults );
+
+            if ( options.globals ) Sketch.install( self );
+
+            element = options.element = options.element || doc.createElement( options.type === DOM ? 'div' : 'canvas' );
+
+            context = options.context = options.context || (function() {
+
+                switch( options.type ) {
+
+                    case CANVAS:
+
+                        return element.getContext( '2d', options );
+
+                    case WEBGL:
+
+                        return element.getContext( 'webgl', options ) || element.getContext( 'experimental-webgl', options );
+
+                    case DOM:
+
+                        return element.canvas = element;
+                }
+
+            })();
+
+            options.container.appendChild( element );
+
+            return Sketch.augment( context, options );
+        },
+
+        augment: function( context, options ) {
+
+            options = extend( options || {}, defaults );
+
+            options.element = context.canvas || context;
+            options.element.className += ' sketch';
+
+            extend( context, options, true );
+
+            return constructor( context );
+        }
+    };
+
+    /*
+    ----------------------------------------------------------------------
+
+        Shims
+
+    ----------------------------------------------------------------------
+    */
+
+    var vendors = [ 'ms', 'moz', 'webkit', 'o' ];
+    var scope = self;
+    var then = 0;
+
+    var a = 'AnimationFrame';
+    var b = 'request' + a;
+    var c = 'cancel' + a;
+
+    var rAF = scope[ b ];
+    var cAF = scope[ c ];
+
+    for ( var i = 0; i < vendors.length && !rAF; i++ ) {
+
+        rAF = scope[ vendors[ i ] + 'Request' + a ];
+        cAF = scope[ vendors[ i ] + 'Cancel' + b ];
+    }
+
+    scope[ b ] = rAF = rAF || function( callback ) {
+
+        var now = +new Date();
+        var dt = M.max( 0, 16 - ( now - then ) );
+        var id = setTimeout( function() {
+            callback( now + dt );
+        }, dt );
+
+        then = now + dt;
+        return id;
+    };
+
+    scope[ c ] = cAF = cAF || function( id ) {
+        clearTimeout( id );
+    };
+
+    /*
+    ----------------------------------------------------------------------
+
+        Output
+
+    ----------------------------------------------------------------------
+    */
+
+    return Sketch;
+
+})();
+
+module.exports = Sketch;
+
+
+});
+require.register("record/index.js", function(exports, require, module){
+module.exports = Record;
+
+function Record( app ) {
+  this.app = app;
+  this._lines = [];
+}
+
+Record.prototype.add = function( action ) {
+  var string = this.app.frameCount + " " + action;
+  this_lines.push( string );
+};
+
+Record.prototype.finalize = function() {
+  this_endTime = new Date();
+};
+
+});
+require.register("component-inherit/index.js", function(exports, require, module){
+
+module.exports = function(a, b){
+  var fn = function(){};
+  fn.prototype = b.prototype;
+  a.prototype = new fn;
+  a.prototype.constructor = a;
+};
+});
+require.register("component-color/index.js", function(exports, require, module){
+
+exports.RGBA = require('./RGBA');
+exports.HSLA = require('./HSLA');
+exports.rgba = exports.RGBA;
+exports.hsla = exports.HSLA;
+});
+require.register("component-color/RGBA.js", function(exports, require, module){
+
+/**
+ * Module dependencies.
+ */
+
+var HSLA = require('./HSLA');
+
+/**
+ * Expose `HSLA`.
+ */
+
+exports = module.exports = RGBA;
+
+/**
+ * Initialize a new `RGBA` with the given r,g,b,a component values.
+ *
+ * @param {Number} r
+ * @param {Number} g
+ * @param {Number} b
+ * @param {Number} a
+ * @api public
+ */
+
+function RGBA(r,g,b,a){
+  if (!(this instanceof RGBA)) return new RGBA(r,g,b,a);
+  this.r = clamp(r);
+  this.g = clamp(g);
+  this.b = clamp(b);
+  this.a = clampAlpha(a);
+  this.rgba = this;
+}
+
+/**
+ * Convert to RGBA (return self).
+ *
+ * @return {RGBA}
+ * @api public
+ */
+
+RGBA.prototype.toRGBA = function(){
+  return this;
+};
+
+/**
+ * Convert to HSLA.
+ *
+ * @return {HSLA}
+ * @api public
+ */
+
+RGBA.prototype.toHSLA = function(){
+  return HSLA.fromRGBA(this);
+};
+
+/**
+ * Return #nnnnnn, #nnn, or rgba(n,n,n,n) string representation of the color.
+ *
+ * @return {String}
+ * @api public
+ */
+
+RGBA.prototype.toString = function(){
+  if (1 == this.a) {
+    var r = pad(this.r);
+    var g = pad(this.g);
+    var b = pad(this.b);
+
+    // Compress
+    if (r[0] == r[1] && g[0] == g[1] && b[0] == b[1]) {
+      return '#' + r[0] + g[0] + b[0];
+    } else {
+      return '#' + r + g + b;
+    }
+  } else {
+    return 'rgba('
+      + this.r + ','
+      + this.g + ','
+      + this.b + ','
+      + (+this.a.toFixed(3)) + ')';
+  }
+};
+
+/**
+ * Return a `RGBA` from the given `hsla`.
+ *
+ * @param {HSLA} hsla
+ * @return {RGBA}
+ * @api public
+ */
+
+exports.fromHSLA = function(hsla){
+  var h = hsla.h / 360
+    , s = hsla.s / 100
+    , l = hsla.l / 100
+    , a = hsla.a;
+
+  var m2 = l <= .5 ? l * (s + 1) : l + s - l * s
+    , m1 = l * 2 - m2;
+
+  var r = hue(h + 1/3) * 0xff
+    , g = hue(h) * 0xff
+    , b = hue(h - 1/3) * 0xff;
+
+  function hue(h) {
+    if (h < 0) ++h;
+    if (h > 1) --h;
+    if (h * 6 < 1) return m1 + (m2 - m1) * h * 6;
+    if (h * 2 < 1) return m2;
+    if (h * 3 < 2) return m1 + (m2 - m1) * (2/3 - h) * 6;
+    return m1;
+  }
+  
+  return new RGBA(r,g,b,a);
+};
+
+/**
+ * Clamp `n` >= 0 and <= 255.
+ *
+ * @param {Number} n
+ * @return {Number}
+ * @api private
+ */
+
+function clamp(n) {
+  return Math.max(0, Math.min(n.toFixed(0), 255));
+}
+
+/**
+ * Clamp alpha `n` >= 0 and <= 1.
+ *
+ * @param {Number} n
+ * @return {Number}
+ * @api private
+ */
+
+function clampAlpha(n) {
+  return Math.max(0, Math.min(n, 1));
+}
+
+/**
+ * Pad `n` hex representation.
+ *
+ * @param {Number} n
+ * @return {String}
+ * @api public
+ */
+
+function pad(n) {
+  return n < 16
+    ? '0' + n.toString(16)
+    : n.toString(16);
+}
+});
+require.register("component-color/HSLA.js", function(exports, require, module){
+
+/**
+ * Module dependencies.
+ */
+
+var RGBA = require('./RGBA');
+
+/**
+ * Expose `HSLA`.
+ */
+
+exports = module.exports = HSLA;
+
+/**
+ * Initialize a new `HSLA` with the given h,s,l,a component values.
+ *
+ * @param {Number} h
+ * @param {Number} s
+ * @param {Number} l
+ * @param {Number} a
+ * @api public
+ */
+
+function HSLA(h,s,l,a){
+  if (!(this instanceof HSLA)) return new HSLA(h,s,l,a);
+  this.h = clampDegrees(h);
+  this.s = clampPercentage(s);
+  this.l = clampPercentage(l);
+  this.a = clampAlpha(a);
+  this.hsla = this;
+}
+
+/**
+ * Convert to HSLA (return self).
+ *
+ * @return {HSLA}
+ * @api public
+ */
+
+HSLA.prototype.toHSLA = function(){
+  return this;
+};
+
+/**
+ * Convert to RGBA.
+ *
+ * @return {RGBA}
+ * @api public
+ */
+
+HSLA.prototype.toRGBA = function(){
+  return RGBA.fromHSLA(this);
+};
+
+/**
+ * Return hsla(n,n,n,n).
+ *
+ * @return {String}
+ * @api public
+ */
+
+HSLA.prototype.toString = function(){
+  return 'hsla('
+    + this.h + ','
+    + this.s.toFixed(0) + ','
+    + this.l.toFixed(0) + ','
+    + this.a + ')';
+};
+
+/**
+ * Return `HSLA` representation of the given `color`.
+ *
+ * @param {RGBA} color
+ * @return {HSLA}
+ * @api public
+ */
+
+exports.fromRGBA = function(rgba){
+  var r = rgba.r / 255
+    , g = rgba.g / 255
+    , b = rgba.b / 255
+    , a = rgba.a;
+
+  var min = Math.min(r,g,b)
+    , max = Math.max(r,g,b)
+    , l = (max + min) / 2
+    , d = max - min
+    , h, s;
+
+  switch (max) {
+    case min: h = 0; break;
+    case r: h = 60 * (g-b) / d; break;
+    case g: h = 60 * (b-r) / d + 120; break;
+    case b: h = 60 * (r-g) / d + 240; break;
+  }
+
+  if (max == min) {
+    s = 0;
+  } else if (l < .5) {
+    s = d / (2 * l);
+  } else {
+    s = d / (2 - 2 * l);
+  }
+
+  h %= 360;
+  s *= 100;
+  l *= 100;
+
+  return new HSLA(h,s,l,a);
+};
+
+/**
+ * Adjust lightness by `percent`.
+ *
+ * @param {Number} percent
+ * @return {HSLA}
+ * @api public
+ */
+
+HSLA.prototype.adjustLightness = function(percent){
+  this.l = clampPercentage(this.l + this.l * (percent / 100));
+  return this;
+};
+
+/**
+ * Adjust hue by `deg`.
+ *
+ * @param {Number} deg
+ * @return {HSLA}
+ * @api public
+ */
+
+HSLA.prototype.adjustHue = function(deg){
+  this.h = clampDegrees(this.h + deg);
+  return this;
+};
+
+/**
+ * Clamp degree `n` >= 0 and <= 360.
+ *
+ * @param {Number} n
+ * @return {Number}
+ * @api private
+ */
+
+function clampDegrees(n) {
+  n = n % 360;
+  return n >= 0 ? n : 360 + n;
+}
+
+/**
+ * Clamp percentage `n` >= 0 and <= 100.
+ *
+ * @param {Number} n
+ * @return {Number}
+ * @api private
+ */
+
+function clampPercentage(n) {
+  return Math.max(0, Math.min(n, 100));
+}
+
+/**
+ * Clamp alpha `n` >= 0 and <= 1.
+ *
+ * @param {Number} n
+ * @return {Number}
+ * @api private
+ */
+
+function clampAlpha(n) {
+  return Math.max(0, Math.min(n, 1));
+}
+
+});
+require.register("neuron/index.js", function(exports, require, module){
+var Color = require('color');
+
+module.exports = Neuron;
+
+function Neuron( app ){
+  this._app = app;
+  this._tweens = [];
+  this.pigment = Color.RGBA(0, 0, 0, 1);
+  this.duration = 0.15;
+  this.delay = 0;
+  this.easing = 'out-circ';
+  this.playing = false;
+  this._removeTween = this._removeTween.bind( this );
+}
+
+Neuron.prototype.setColor = function(color ) {
+  this.pigment = color;
+};
+
+Neuron.prototype.setDuration = function(duration) {
+  this.duration = duration;
+};
+
+Neuron.prototype.setDelay = function(delay) {
+  this.delay = delay;
+};
+
+Neuron.prototype.setEasing = function(easing) {
+  this.easing = easing;
+};
+
+Neuron.prototype.getColor = function() {
+  return this.pigment;
+};
+
+Neuron.prototype.getDuration = function() {
+  return this.duration;
+};
+
+Neuron.prototype.getDelay = function() {
+  return this.getDelay;
+};
+
+Neuron.prototype.getEasing = function() {
+  return this.easing;
+};
+
+Neuron.prototype.getStageSize = function() {
+  return {
+      width: 1000
+    , height: 1000
+  }
+};
+
+Neuron.prototype.update = function() {
+
+  this._tweens.forEach( function( tween ){
+    tween.update();
+  } );
+
+
+};
+
+Neuron.prototype._removeTween = function( tween ) {
+  var index = this._tweens.indexOf( tween );
+  this._tweens.splice( index, 1 );
+};
+
+});
+require.register("moon/index.js", function(exports, require, module){
+var inherit = require( 'inherit' )
+  , Tween = require( 'tween' )
+  , Vector = require( 'vector' )
+  , Neuron = require( 'neuron' );
+
+module.exports = Moon;
+
+function Moon( app, duration ){
+  
+  Neuron.apply( this, arguments );
+
+  this._amount = 40;
+
+  this.x = this._app.width / 2;
+  this.y = this._app.height / 2;
+  this.r = this._app.height / 3;
+  this._slave = 0;
+  this._startAngle = 0.0;
+  this.setDuration( duration );
+  this.initialize();
+}
+
+inherit( Moon, Neuron );
+
+Moon.prototype.setAngle = function( angle ) {
+
+  this._startAngle = angle;
+
+};
+
+
+Moon.prototype.initialize = function( ) {
+
+  if ( this.playing ) return;
+  
+  this.__points = new Array( this._amount );
+  this._points = new Array( this._amount );
+  this.reset();
+
+};
+
+Moon.prototype.play = function() {
+
+  if ( this.playing ) return;
+
+  this.animate_in();
+  
+};
+
+
+Moon.prototype.animate_in = function( ) {
+  
+  var self = this;
+
+  this.playing = true;
+
+  var update = function( pos ) {
+    return function(o){
+      pos.x = o.x;
+      pos.y = o.y;
+    }
+  }
+
+  for ( var i = 0; i < this._amount; i += 1 ) {
+    var pos = this._points[i]
+      , ref = this.__points[i]
+      , from = { x: pos.x, y: pos.y }
+      , to = { x: ref.x, y: ref.y }
+      , tween = Tween( from )
+              .to( to )
+              .duration( this.duration )
+              .ease( this.easing )
+              .update( update(pos) )
+              .on( 'end', function() {
+                self._removeTween( this );
+              } );
+
+    this._tweens.push( tween );
+  }
+  
+  var lastTween = Tween({ slave: this._slave })
+    .to( { slave: 0 } )
+    .duration( this.duration )
+    .ease( this.easing )
+    .update( function(o) {
+      self._slave = o.slave;
+    } )
+    .on( 'end', function(){
+      self._removeTween( this );
+      self.animate_out();
+    })
+
+  this._tweens.push( lastTween );
+};
+
+
+Moon.prototype.animate_out = function() {
+  
+  var self = this;
+
+  this.playing = true;
+
+  var update = function( pos ) {
+    return function(o){
+      pos.x = o.x;
+      pos.y = o.y;
+    }
+  }
+  
+  var l = ceil( this._amount / 2 )
+  for ( var i = 0; i < l; i += 1 ) {
+    var index = 0 === i ? 0 : this._amount - i
+    var pos = this._points[i]
+      , ref = this.__points[index]
+      , from = { x: pos.x, y: pos.y }
+      , to = { x: ref.x, y: ref.y }
+      , tween = Tween( from )
+              .to( to )
+              .duration( this.duration )
+              .ease( this.easing )
+              .update( update(pos) )
+              .on( 'end', function() {
+                self._removeTween( this );
+              } );
+
+    this._tweens.push( tween );
+  }
+  
+  var lastTween = Tween({ slave: this._slave })
+    .to( { slave: 0 } )
+    .duration( this.duration )
+    .ease( this.easing )
+    .update( function(o) {
+      self._slave = o.slave;
+    } )
+    .on( 'end', function(){
+      self._removeTween( this );
+      self.animate_end();
+    })
+
+  this._tweens.push( lastTween );
+};
+
+
+Moon.prototype.animate_end = function() {
+    
+  this.playing = false;
+  this.reset();
+
+};
+
+
+Moon.prototype.reset = function() {
+  
+  for ( var i = 0; i < this._amount; i += 1 ) {
+
+    var theta = ( i / this._amount ) * TWO_PI + this._startAngle
+      , xpos = this.r * cos( theta ) + this.x
+      , ypos = this.r * sin( theta ) + this.y;
+
+    this.__points[i] = new Vector( xpos, ypos );
+    if ( i <= this._amount / 2 ) {
+      var ref = this.__points[i];
+      this._points[i] = new Vector( ref.x, ref.y );
+    } else {
+      var ref = this.__points[this._amount - i];
+      this._points[i] = new Vector( ref.x, ref.y );
+    }
+  }
+};
+
+
+Moon.prototype.render = function() {
+  
+  if ( !this.playing ) return;
+
+  // noStroke
+  this._app.fillStyle = this.pigment.toString();
+  
+  this._app.beginPath();
+  
+  for ( var i = 0; i < this._amount; i += 1 ) {
+
+    var pos = this._points[i];
+
+    if (i === 0) {
+      this._app.moveTo( pos.x, pos.y );
+    } else {
+      this._app.lineTo( pos.x, pos.y );
+    }
+    
+  }
+
+  this._app.closePath();
+  this._app.fill();
+};
+
+});
+require.register("prism/index.js", function(exports, require, module){
+var inherit = require( 'inherit' )
+  , Tween = require( 'tween' )
+  , Vector = require( 'vector' )
+  , Neuron = require( 'neuron' );
+
+module.exports = Prism;
+
+function Prism( app, duration ){
+  
+  Neuron.apply( this, arguments );
+  
+  this.x = this._app.width / 2;
+  this.y = this._app.height / 2;
+  this.distance = this._app.width;
+  this.setDuration( duration );
+  
+  this._amount = 3;
+  this._offset = - PI / 2;
+
+  this._magnitude = 0.0;
+  this._m = 50.0;
+
+  this.initialize();
+}
+
+inherit( Prism, Neuron );
+
+Prism.prototype.setAmount = function( amount ) {
+
+  if ( this.playing ) return;
+  
+  this._amount = amount;
+  this.initialize();
+
+};
+
+Prism.prototype.setMagnitude = function( magnitude ) {
+
+  if ( this.playing ) return;
+  
+  this._m = magnitude;
+};
+
+
+Prism.prototype.getAmount = function( ) {
+  return this._amount;
+};
+
+Prism.prototype.play = function() {
+  
+  if( this.playing ) return;
+
+  this._animate_in();
+
+};
+
+Prism.prototype._animate_in = function( ) {
+  
+  var self = this;
+
+  this.playing = true;
+
+  var update = function( pos ) {
+    return function(o){
+      pos.x = o.x;
+      pos.y = o.y;
+    }
+  }
+
+  for ( var i = 0; i < this._amount; i += 1 ) {
+    var pos = this._points[i]
+      , ref = this.__points[i]
+      , from = { x: pos.x, y: pos.y }
+      , to = { x: ref.x, y: ref.y }
+      , tween = Tween( from )
+              .to( to )
+              .duration( this.duration )
+              .ease( this.easing )
+              .update( update(pos) )
+              .on( 'end', function() {
+                self._removeTween( this );
+              } );
+
+    this._tweens.push( tween );
+  }
+  
+  var lastTween = Tween({ magnitude: this._magnitude })
+    .to( { magnitude: this._m } )
+    .duration( this.duration )
+    .ease( this.easing )
+    .update( function(o) {
+      self._magnitude = o.magnitude;
+    } )
+    .on( 'end', function(){
+      self._removeTween( this );
+      self.animate_end();
+    })
+
+  this._tweens.push( lastTween );
+};
+
+
+Prism.prototype.animate_end = function() {
+  this.reset();
+  this.playing = false;
+
+};
+
+
+Prism.prototype.initialize = function( ) {
+
+  if ( this.playing ) return;
+  
+  this.__points = new Array( this._amount );
+  this._points = new Array( this._amount );
+  this.reset();
+
+};
+
+
+Prism.prototype.reset = function() {
+  
+  this._magnitude = 0.0;
+
+  for ( var i = 0; i < this._amount; i += 1 ) {
+
+    var pct = ( i + 1 ) / this._amount
+      , theta = pct * TWO_PI + this._offset
+      , _x = cos( theta )
+      , _y = sin( theta )
+    
+    this._points[i] = new Vector( this.x, this.y );
+    this.__points[i] = new Vector( this.distance * _x + this.x, this.distance * _y + this.y );
+
+  }
+
+};
+
+
+Prism.prototype.render = function() {
+  
+  if ( !this.playing ) return;
+
+  this._app.strokeStyle = this.pigment.toString();
+  this._app.lineWidth = 1;
+
+  // noFill
+  this._app.fillStyle = 'rgba(0, 0, 0, 0)';
+  this._app.beginPath();
+  for ( var i = 0; i < this._amount; i += 1 ) {
+
+    var pos = this._points[i];
+
+    if (i === 0) {
+      this._app.moveTo( pos.x, pos.y );
+    } else {
+      this._app.lineTo( pos.x, pos.y );
+    }
+    
+  }
+  this._app.closePath();
+  this._app.stroke();
+
+  // this._app.lineWidth = 0;
+  this._app.fillStyle = this.pigment.toString();
+  this._app.beginPath();
+  for ( var i = 0; i < this._amount; i += 1 ) {
+    var pos = this._points[i];
+    this._app.moveTo( pos.x, pos.y );
+    this._app.arc( pos.x, pos.y, this._magnitude / 2, 0, TWO_PI, true );
+  }
+  this._app.closePath();
+  this._app.fill();
+
+};
+
+});
+require.register("mnmly-vector/index.js", function(exports, require, module){
+
+/**
+ * Expose `Vector`.
+ */
+
+module.exports = Vector;
+
+/**
+ * Initialize a new `Vector` with x / y.
+ *
+ * @param {Number} x
+ * @param {Number} y
+ * @api public
+ */
+
+function Vector(x, y) {
+  if (!(this instanceof Vector)) return new Vector(x, y);
+  this.x = x;
+  this.y = y;
+}
+
+/**
+ * Return a negated vector.
+ *
+ * @return {Vector}
+ * @api public
+ */
+
+Vector.prototype.negate = function(){
+  return new Vector(-this.x, -this.y);
+};
+
+/**
+ * Add x / y.
+ *
+ * @param {Vector} p
+ * @return {Vector} new vector
+ * @api public
+ */
+
+Vector.prototype.add = function(v){
+  return new Vector(this.x + v.x, this.y + v.y);
+};
+
+/**
+ * Sub x / y.
+ *
+ * @param {Vector} p
+ * @return {Vector} new vector
+ * @api public
+ */
+
+Vector.prototype.sub = function(v){
+  return new Vector(this.x - v.x, this.y - v.y);
+};
+
+/**
+ * Multiply x / y.
+ *
+ * @param {Vector} p
+ * @return {Vector} new vector
+ * @api public
+ */
+
+Vector.prototype.mul = function(v){
+  return new Vector(this.x * v.x, this.y * v.y);
+};
+
+/**
+ * Divide x / y.
+ *
+ * @param {Vector} p
+ * @return {Vector} new vector
+ * @api public
+ */
+
+Vector.prototype.div = function(v){
+  return new Vector(this.x / v.x, this.y / v.y);
+};
+
+/**
+ * Check if these vectors are the same.
+ *
+ * @param {Vector} p
+ * @return {Boolean}
+ * @api public
+ */
+
+Vector.prototype.equals = function(v){
+  return this.x == v.x && this.y == v.y;
+};
+
+/**
+ * Return a clone of this vector.
+ *
+ * @return {Vector} new vector
+ * @api public
+ */
+
+Vector.prototype.clone = function(){
+  return new Vector(this.x, this.y);
+};
+
+/**
+ * Return angle in radians.
+ *
+ * @return {Number}
+ * @api public
+ */
+
+Vector.prototype.angle = function(){
+  return Math.atan2(this.x, this.y);
+};
+
+/**
+ * Return angle in degrees.
+ *
+ * @return {Number}
+ * @api public
+ */
+
+Vector.prototype.degrees = function(){
+  return this.angle() * 180 / Math.PI;
+};
+
+/**
+ * Return the distance between vectors.
+ *
+ * @param {Vector} v
+ * @return {Number}
+ * @api public
+ */
+
+Vector.prototype.distance = function(v){
+  var x = this.x - v.x;
+  var y = this.y - v.y;
+  return Math.sqrt(x * x + y * y);
+};
+
+/**
+ * Return the magnitude of this vector.
+ *
+ * @return {Number}
+ * @api public
+ */
+
+Vector.prototype.magnitude = function(){
+  return Math.sqrt(this.x * this.x + this.y * this.y);
+};
+
+/**
+ * Return the linear interpolation between vectors given a step point.
+ *
+ * @param {Vector} v
+ * @param {Number} a
+ * @return {Vector}
+ * @api public
+ */
+
+Vector.prototype.interpolated = function(v, a){
+  return new Vector(this.x * (1 - a) + v.x * a, this.y * (1 - a) + v.y * a);
+};
+
+/**
+ * Return the middle position between vectors.
+ *
+ * @param {Vector} v
+ * @return {Vector}
+ * @api public
+ */
+
+Vector.prototype.middle = function(v){
+  return this.interpolated(v, .5);
+};
+
+/**
+ * Return the dot product between vectors.
+ *
+ * @param {Vector} v
+ * @return {Number}
+ * @api public
+ */
+
+Vector.prototype.dot = function(v) {
+  return this.x * v.x + this.y * v.y;
+};
+
+/**
+ * Return the angle between vectors in radians.
+ *
+ * @param {Vector} v
+ * @return {Number}
+ * @api public
+ */
+
+Vector.prototype.angleBetween = function(v){
+  var dot = this.dot(v);
+  var magA = this.magnitude();
+  var magB = v.magnitude();
+  return Math.acos(dot / (magA * magB))
+};
+
+/**
+ * Return "(x, y)" string representation.
+ *
+ * @return {String}
+ * @api public
+ */
+
+Vector.prototype.toString = function(){
+  return '(' + this.x + ', ' + this.y + ')';
+};
+
+
+
+
+});
+require.register("clay/index.js", function(exports, require, module){
+var inherit = require( 'inherit' )
+  , Tween = require( 'tween' )
+  , Vector = require( 'vector' )
+  , Neuron = require( 'neuron' );
+
+module.exports = Clay;
+
+function Clay( app, duration ){
+  
+  Neuron.apply( this, arguments );
+  
+  this.setDuration( duration );
+  
+  this.origin = new Vector( this._app.width / 2, this._app.height );
+  this.impact = new Vector( random( this._app.width ), random( this._app.height ) )
+  this.distance = this._app.height;
+  this.rotation = HALF_PI;
+  this.smoothness = true;
+  this._amount = floor( random( 8, 16 ) );
+  this.initialize();
+
+}
+
+inherit( Clay, Neuron );
+
+Clay.prototype.setAmount = function( amount ) {
+
+  if ( this.playing ) return;
+  this._amount = amount;
+
+};
+
+Clay.prototype.setOrigin = function( x, y ) {
+
+  if ( this.playing ) return;
+    
+  this.origin.x = x;
+  this.origin.y = y;
+};
+
+Clay.prototype.setSmoothing = function( smoothness ) {
+
+  if ( this.playing ) return;
+
+  this.smoothness = smoothness;
+
+};
+
+Clay.prototype.setImpact = function( x, y ) {
+  
+  if( this.plaing ) return;
+  
+  this.impact.x = x;
+  this.impact.y = y;
+
+};
+
+Clay.prototype.initialize = function( ) {
+
+  if ( this.playing ) return;
+  
+  this._verts = new Array( this._amount );
+  this._dests = new Array( this._amount );
+  this.reset();
+  this.setupDestinations();
+
+};
+
+Clay.prototype.setupDestinations = function( ) {
+  
+  if ( this.playing ) return;
+
+  for ( var i = 0; i < this._amount; i += 1 ) {
+
+    var v = this._verts[i]
+      , ptheta = i / this._amount * TWO_PI + this.rotation
+      , theta = v.angleBetween( this.impact )
+      , d = v.distance( this.impact )
+      , a = 5 * this.distance / sqrt( d )
+      , x = a * cos( theta ) + v.x
+      , y = a * sin( theta ) + v.y
+    this._dests[i] = new Vector( x, y );
+  }
+};
+
+
+Clay.prototype.reset = function() {
+  
+  if( this.playing ) return;
+
+  for ( var i = 0; i < this._amount; i += 1 ) {
+
+    var pct = ( i + 1 ) / this._amount
+      , theta = pct * TWO_PI + this.rotation
+      , x = this.distance * cos( theta ) + this.origin.x
+      , y = this.distance * sin( theta ) + this.origin.y
+    this._verts[i] = new Vector( x, y );
+
+  }
+
+};
+
+Clay.prototype.play = function() {
+  
+  if( this.playing ) return;
+
+  this.animate_in();
+
+};
+
+Clay.prototype.animate_in = function( ) {
+  
+  var self = this;
+
+  this.playing = true;
+  
+  var update = function( v ){
+    return function( o ){
+      v.x = o.x;
+      v.y = o.y;
+    }
+  };
+  for ( var i = 0; i < this._amount; i += 1 ) {
+    var v = this._verts[i]
+      , d = this._dests[i]
+      , from = { x: v.x, y: v.y }
+      , to = { x: d.x, y: d.y }
+      , tween = Tween( from )
+            .to( to )
+            .ease( this.easing )
+            .duration( this.duration )
+            .update( update( v ) )
+            .on( 'end', function(){
+              self._removeTween( this );
+            } )
+    this._tweens.push( tween );
+  }
+
+  var lastTween = Tween( { slave: this._slave })
+                    .to( { slave: 0 } )
+                    .ease( this.easing )
+                    .duration( this.duration )
+                    .update( function( o ) { self._slave = o.slave } )
+                    .on( 'end', function(){
+                      self._removeTween( this );
+                      self.animate_out();
+                    })
+    
+  this._tweens.push( lastTween );
+  
+};
+
+
+
+Clay.prototype.animate_out = function() {
+    
+  this.reset();
+  this.playing = false;
+
+};
+
+Clay.prototype.render = function() {
+  
+  if ( !this.playing ) return;
+
+  this._app.lineWidth = 0;
+  this._app.fillStyle = this.pigment.toString();
+
+  this._app.beginPath();
+  
+  if ( this.smoothness ) {
+    // Barrowed from Processing.js `curveVertex`
+    var last = this._verts.length - 1;
+    this._app.moveTo( this._verts[last].x, this._verts[last].y )
+    var b = new Array(4)
+      , s = 1;
+    for ( var i = 1; ( i + 2 ) < this._amount; i += 1 ) {
+      var v = this._verts[i];
+      b[0] = [v.x, v.y];
+      b[1] = [v.x + ( s * this._verts[i + 1].x - s * this._verts[i - 1].x ) / 6,
+              v.y + ( s * this._verts[i + 1].y - s * this._verts[i - 1].y ) / 6];
+      b[2] = [this._verts[i + 1].x + ( s * this._verts[i].x - s * this._verts[i + 2].x ) / 6,
+              this._verts[i + 1].y + ( s * this._verts[i].y - s * this._verts[i + 2].y ) / 6];
+      b[3] = [ this._verts[i + 1].x, this._verts[i + 1].y];
+      this._app.bezierCurveTo( b[1][0], b[1][1], b[2][0], b[2][1], b[3][0], b[3][1] );
+    }
+
+  } else {
+    for ( var i = 0; i < this._amount; i += 1 ) {
+      var v = verts[i];
+      this._app.lineTo( v.x, v.y );
+    }
+  }
+  
+  this._app.closePath();
+  this._app.fill();
+};
+
+Clay.prototype.getAmount = function( ) {
+  return this._amount;
+};
+
+
+
+});
+require.register("suspension/index.js", function(exports, require, module){
+var inherit = require( 'inherit' )
+  , debug = require( 'debug' )( 'neuronal:suspension' )
+  , Tween = require( 'tween' )
+  , Vector = require( 'vector' )
+  , Neuron = require( 'neuron' );
+
+module.exports = Suspension;
+
+function Suspension( app, duration ) {
+
+  Neuron.apply( this, arguments );
+  this.duration = duration;
+  this._origin = new Vector( this._app.width / 2, this._app.height / 2 );
+  this._theta = random( TWO_PI );
+  this._deviation = HALF_PI;
+  this._distance = this._app.width / 2;
+  this._radius = 25;
+  this._slave = 0;
+  this._amount = 16;
+  this._tweens = [];
+  
+  this._verts = new Array(this._amount);
+
+  this.initialize();
+}
+
+inherit( Suspension, Neuron );
+
+
+Suspension.prototype.getX = function( ) {
+  return this._origin.x;
+};
+
+Suspension.prototype.getY = function() {
+  return this._origin.y;
+};
+
+Suspension.prototype.getTheta = function( ) {
+  return this._theta;
+};
+
+Suspension.prototype.getDeviation = function( ) {
+  return this._deviation;
+};
+
+Suspension.prototype.getDistance = function( ) {
+  return this._distance;
+};
+
+
+Suspension.prototype.getAmount = function() {
+  return this._amount;
+};
+
+Suspension.prototype.getRadius = function() {
+  return this._radius;
+};
+
+
+Suspension.prototype.setDistance = function( distance ) {
+  
+  if ( this.playing ) return;
+
+  this._distance = distance;
+
+};
+
+
+Suspension.prototype.setTheta = function( theta ) {
+  
+  if ( this.playing ) return;
+
+  this._theta = theta;
+  
+};
+
+
+Suspension.prototype.setDeviation = function( deviation ) {
+  
+  if ( this.playing ) return;
+
+  this._deviation = deviation / 2;
+
+};
+
+Suspension.prototype.setAmount = function( amount ) {
+  if ( this.playing ) return;
+  this._amount = amount;
+
+};
+
+Suspension.prototype.setOrigin = function( x, y ) {
+
+  if ( this.playing ) return;
+
+  this._origin.x = x;
+  this._origin.y = y;
+    
+};
+
+Suspension.prototype.setRadius = function( radius ) {
+  
+  if ( this.playing ) return;
+
+  this._radius = radius;
+
+};
+
+
+Suspension.prototype.initialize = function( ) {
+
+  if (this.playing) return;
+  
+  for ( var i = 0; i < this._amount; i += 1 ) {
+
+    var vert = this._verts[i] = new Suspension.Vertex( this._origin.x, this._origin.y )
+      , t = this._theta + random( -this._deviation, this._deviation )
+      , a = random( this._distance )
+      , d = random( this.duration )
+      , r = random( this._radius / 2, this._radius )
+      , x = a * cos( t ) + this._origin.x
+      , y = a * sin( t ) + this._origin.y;
+    vert.destination.x = x;
+    vert.destination.y = y;
+    vert.radius = r;
+  }
+
+};
+
+Suspension.prototype.play = function() {
+  
+  if ( this.playing ) return;
+
+
+  this.animate_in();
+};
+
+
+Suspension.prototype.animate_in = function() {
+  
+  var self = this;
+
+  this.playing = true;
+
+  var update = function( v ){
+    return function( o ){
+      v.x = o.x;
+      v.y = o.y;
+    }
+  }
+  for ( var i = 0; i < this._amount; i += 1 ) {
+    var v = this._verts[i]
+      , from = { x: v.x, y: v.y }
+      , to = { x: v.destination.x, y: v.destination.y }
+      , tween = Tween( from )
+          .ease( this.easing )
+          .duration( this.duration )
+          .to( to )
+          .update( update( v ) )
+          .on( 'end', function(){
+            self._removeTween( this );
+          });
+    this._tweens.push( tween );
+  }
+
+  var lastTween = Tween( { slave: 0 } )
+    .ease( this.easing )
+    .duration( this.duration )
+    .to( { slave: 0 } )
+    .update( function( o ) { self._slave = o.slave; } )
+    .on( 'end', function(){
+      var index = self._tweens.indexOf( this );
+      self._tweens.splice( index, 1 );
+      self.animate_end();
+    } );
+    this._tweens.push( lastTween );
+
+};
+
+
+Suspension.prototype.animate_end = function() {
+  
+  this.playing = false;
+  debug( 'animate_end' );
+  
+  for ( var i = 0; i < this._amount; i += 1 ) {
+    this._verts[i].x = this._origin.x;
+    this._verts[i].y = this._origin.y;
+  }
+};
+
+Suspension.prototype.render = function() {
+  if ( !this.playing ) return;
+  
+  var context = this._app;
+  // ctx.noStroke();
+  this._app.fillStyle = this.pigment.toString();
+  this._app.beginPath();
+  for ( var i = 0; i < this._amount; i += 1 ) {
+    var v = this._verts[i];
+    // ellipse( v.x, v.y, v.radius, v.radius );
+    this._app.moveTo(v.x, v.y);
+    this._app.arc( v.x, v.y, v.radius / 2, 0, TWO_PI, true);
+  }
+  this._app.closePath();
+  this._app.fill();
+};
+
+// Vertex
+Suspension.Vertex = Vertex;
+
+function Vertex( x, y ){
+  Vector.apply(this, arguments);
+  this.destination = new Vector(0, 0);
+  this.radius = 0.0;
+}
+
+inherit(Vertex, Vector);
+
+
+});
+require.register("mnmly-tween/index.js", function(exports, require, module){
+
+/**
+ * Module dependencies.
+ */
+
+var Emitter = require('emitter')
+  , ease = require('ease');
+
+/**
+ * Expose `Tween`.
+ */
+
+module.exports = Tween;
+
+/**
+ * Initialize a new `Tween` with `obj`.
+ *
+ * @param {Object|Array} obj
+ * @api public
+ */
+
+function Tween(obj) {
+  if (!(this instanceof Tween)) return new Tween(obj);
+  this._from = obj;
+  this.ease('linear');
+  this.duration(500);
+  this.delay(0);
+}
+
+/**
+ * Mixin emitter.
+ */
+
+Emitter(Tween.prototype);
+
+/**
+ * Reset the tween.
+ *
+ * @api public
+ */
+
+Tween.prototype.reset = function(){
+  this.isArray = Array.isArray(this._from);
+  this._curr = clone(this._from);
+  this._done = false;
+  this._start = Date.now();
+  return this;
+};
+
+/**
+ * Tween to `obj` and reset internal state.
+ *
+ *    tween.to({ x: 50, y: 100 })
+ *
+ * @param {Object|Array} obj
+ * @return {Tween} self
+ * @api public
+ */
+
+Tween.prototype.to = function(obj){
+  this.reset();
+  this._to = obj;
+  return this;
+};
+
+/**
+ * Set duration to `ms` [500].
+ *
+ * @param {Number} ms
+ * @return {Tween} self
+ * @api public
+ */
+
+Tween.prototype.duration = function(ms){
+  this._duration = ms;
+  return this;
+};
+
+/**
+ * Set delay to `ms` [0].
+ *
+ * @param {Number} ms
+ * @return {Tween} self
+ * @api public
+ */
+
+Tween.prototype.delay = function(ms){
+  this._delay = ms;
+  return this;
+};
+
+/**
+ * Set easing function to `fn`.
+ *
+ *    tween.ease('in-out-sine')
+ *
+ * @param {String|Function} fn
+ * @return {Tween}
+ * @api public
+ */
+
+Tween.prototype.ease = function(fn){
+  fn = 'function' == typeof fn ? fn : ease[fn];
+  if (!fn) throw new TypeError('invalid easing function');
+  this._ease = fn;
+  return this;
+};
+
+/**
+ * Stop the tween and immediately emit "stop" and "end".
+ *
+ * @return {Tween}
+ * @api public
+ */
+
+Tween.prototype.stop = function(){
+  this.stopped = true;
+  this._done = true;
+  this.emit('stop');
+  this.emit('end');
+  return this;
+};
+
+/**
+ * Perform a step.
+ *
+ * @return {Tween} self
+ * @api private
+ */
+
+Tween.prototype.step = function(){
+  if (this._done) return;
+
+  // duration
+  var duration = this._duration;
+  var now = Date.now();
+  var delta = now - this._start;
+  var done = delta >= duration + this._delay;
+  var waiting = delta < this._delay;
+  
+  if (waiting) return;
+
+  // complete
+  if (done) {
+    this._from = this._to;
+    this._update(this._to);
+    this._done = true;
+    this.emit('end');
+    return this;
+  }
+
+  // tween
+  var from = this._from;
+  var to = this._to;
+  var curr = this._curr;
+  var fn = this._ease;
+  var p = (now - this._start - this._delay) / duration;
+  var n = fn(p);
+
+  // array
+  if (this.isArray) {
+    for (var i = 0; i < from.length; ++i) {
+      curr[i] = from[i] + (to[i] - from[i]) * n;
+    }
+
+    this._update(curr);
+    return this;
+  }
+
+  // objech
+  for (var k in from) {
+    curr[k] = from[k] + (to[k] - from[k]) * n;
+  }
+
+  this._update(curr);
+  return this;
+};
+
+/**
+ * Set update function to `fn` or
+ * when no argument is given this performs
+ * a "step".
+ *
+ * @param {Function} fn
+ * @return {Tween} self
+ * @api public
+ */
+
+Tween.prototype.update = function(fn){
+  if (0 == arguments.length) return this.step();
+  this._update = fn;
+  return this;
+};
+
+/**
+ * Clone `obj`.
+ *
+ * @api private
+ */
+
+function clone(obj) {
+  if (Array.isArray(obj)) return obj.slice();
+  var ret = {};
+  for (var key in obj) ret[key] = obj[key];
+  return ret;
+}
+
+});
+require.register("pinwheel/index.js", function(exports, require, module){
+var inherit = require( 'inherit' )
+  , Tween = require( 'tween' )
+  , Vector = require( 'vector' )
+  , Neuron = require( 'neuron' );
+
+module.exports = PinWheel;
+
+function PinWheel( app, duration ){
+  
+  Neuron.apply( this, arguments );
+  
+  this.setDuration( duration );
+  this._amount = 8;
+  this.dur = duration / ( this._amount + 2 );
+  this._origin = new Vector( this._app.width / 2, this._app.height / 2 );
+  this._distance = this._app.height / 6;
+  this._startAngle = 0;
+  this._endAngle = TWO_PI;
+  this._drift = random( TWO_PI );
+  this.initialize();
+}
+
+inherit( PinWheel, Neuron );
+
+PinWheel.prototype.setAmount = function( amount ) {
+
+  if ( this.playing ) return;
+
+  this._amount = amount;
+
+};
+
+PinWheel.prototype.setDrift = function( drift ) {
+
+  if ( this.playing ) return;
+
+  this._drift = drift;
+
+};
+
+
+PinWheel.prototype.setAngles = function( startAngle, endAngle ) {
+
+  this._startAngle = startAngle;
+  this._endAngle = endAngle;
+
+};
+
+PinWheel.prototype.initialize = function( ) {
+
+  if ( this.playing ) return;
+  
+  this._points = new Array( this._amount );
+  for ( var i = 0; i < this._amount; i += 1 ) {
+    this._points[i] = new Vector( 0, 0 );
+  }
+  this.reset();
+
+};
+
+
+PinWheel.prototype.reset = function() {
+  
+  if ( this.playing ) return;
+
+  for ( var i = 0; i < this._amount; i += 1 ) {
+    var pct = i / this._amount
+      , theta = this._startAngle
+    this._points[i].x = this._distance * cos( theta ) + this._origin.x;
+    this._points[i].y = this._distance * sin( theta ) + this._origin.y;
+
+  }
+};
+
+PinWheel.prototype.play = function() {
+
+  if ( this.playing ) return;
+
+  this.animate_in();
+  
+};
+
+
+PinWheel.prototype.animate_in = function( ) {
+  
+  var self = this;
+
+  this.playing = true;
+  var delay = 0;
+
+  var update = function( pos ) {
+    return function(o){
+      pos.x = o.x;
+      pos.y = o.y;
+    }
+  }
+  var sequences = [];
+  for ( var i = 0; i < this._amount; i += 1 ) {
+
+    var index = i + 1
+      , _drift = this._drift / index
+      , center = PI * ( index / this._amount );
+    delay += this.dur;
+    sequences[i] = [];
+    for ( var j = 0; j < this._amount; j += 1 ) {
+      var pct = min( j / index, 1.0 )
+        , theta = pct * this._endAngle + this._startAngle + center + this._drift
+        , p = this._points[j]
+        , x = this._distance * cos( theta ) + this._origin.x
+        , y = this._distance * sin( theta ) + this._origin.y
+        , from = 0 === i ? { x: p.x, y: p.y } : { x: sequences[i - 1][j].x, y: sequences[i - 1][j].y }
+        , to = { x: x, y: y }
+        , tween = Tween( from )
+                .delay( delay )
+                .to( to )
+                .duration( this.dur )
+                .ease( this.easing )
+                .update( update(p) )
+                .on( 'end', function() {
+                  self._removeTween( this );
+                } );
+
+    sequences[i].push({ x: x, y: y });
+    this._tweens.push( tween );
+    // if ( j >= index ) {
+    //   x = this._origin.x;
+    //   y = this._origin.y;
+    // } else {
+    //  x = this._distance * cos( theta ) + this._origin.x
+    //  y = this._distance * sin( theta ) + this._origin.y;
+    // }
+
+    }
+  }
+  
+  var lastTween = Tween({ slave: this._slave })
+    .to( { slave: 0 } )
+    .duration( this.dur )
+    .delay( delay )
+    .ease( this.easing )
+    .update( function(o) {
+      self._slave = o.slave;
+    } )
+    .on( 'end', function(){
+      self._removeTween( this );
+      self.animate_out();
+    })
+
+  this._tweens.push( lastTween );
+};
+
+
+PinWheel.prototype.animate_out = function() {
+  
+  var self = this;
+
+  this.playing = true;
+
+  var update = function( pos ) {
+    return function(o){
+      pos.x = o.x;
+      pos.y = o.y;
+    }
+  }
+  
+  for ( var i = 0; i < this._amount; i += 1 ) {
+    var p = this._points[i]
+      , from = { x: p.x, y: p.y }
+      , to = { x: this._origin.x, y: this._origin.y }
+      , tween = Tween( from )
+              .to( to )
+              .duration( this.dur )
+              .ease( this.easing )
+              .update( update( p ) )
+              .on( 'end', function() {
+                self._removeTween( this );
+              } );
+
+    this._tweens.push( tween );
+  }
+  
+  var lastTween = Tween({ slave: this._slave })
+    .to( { slave: 0 } )
+    .duration( this.dur )
+    .ease( this.easing )
+    .update( function(o) {
+      self._slave = o.slave;
+    } )
+    .on( 'end', function(){
+      self._removeTween( this );
+      self.animate_end();
+    })
+
+  this._tweens.push( lastTween );
+};
+
+
+PinWheel.prototype.animate_end = function() {
+    
+  this.playing = false;
+  this.reset();
+
+};
+
+
+
+
+PinWheel.prototype.render = function() {
+  
+  if ( !this.playing ) return;
+
+  // noStroke
+  this._app.fillStyle = this.pigment.toString();
+  
+  this._app.beginPath();
+  
+  for ( var i = 0; i < this._amount; i += 1 ) {
+
+    var pos = this._points[i];
+
+    if (i === 0) {
+      this._app.moveTo( pos.x, pos.y );
+    } else {
+      this._app.lineTo( pos.x, pos.y );
+    }
+    
+  }
+
+  this._app.closePath();
+  this._app.fill();
+};
+
+PinWheel.prototype._createTween = function() {
+  return _tween;
+};
+
+});
+require.register("squiggle/index.js", function(exports, require, module){
+var inherit = require( 'inherit' )
+  , Tween = require( 'tween' )
+  , Vector = require( 'vector' )
+  , Neuron = require( 'neuron' );
+
+module.exports = Squiggle;
+
+function Squiggle( app, duration ){
+  
+  Neuron.apply( this, arguments );
+  
+  this.x = this._app.width / 2;
+  this.y = this._app.height / 2;
+  this.distance = this._app.width;
+  this.setDuration( duration );
+  
+  this._state = 0.0;
+  this._entering = false;
+
+  this._distance = this._app.width / 2;
+  this._amplitude = this._app.height / 4;
+  this._angle = 0;
+  this._revolutions = 0;
+  this._amount = 256;
+  this._origin = new Vector( this._app.width / 2, this._app.height / 2 );
+  
+  this.initialize();
+}
+
+inherit( Squiggle, Neuron );
+
+Squiggle.prototype.setRevolutions = function( revolutions ) {
+
+  if ( this.playing ) return;
+  this._revolutions = revolutions;
+
+};
+
+Squiggle.prototype.setAmount = function( amount ) {
+
+  if ( this.playing ) return;
+  
+  this._amount = amount;
+
+};
+
+Squiggle.prototype.setAngle = function( angle ) {
+
+  if ( this.playing ) return;
+  
+  this._angle = angle;
+};
+
+Squiggle.prototype.setAmplitude = function( amplitude ) {
+
+  if ( this.playing ) return;
+  
+  this._amplitude = amplitude;
+};
+
+Squiggle.prototype.setDistance = function( distance ) {
+
+  if ( this.playing ) return;
+  
+  this._distance = distance;
+};
+
+
+Squiggle.prototype.getAmount = function( ) {
+  return this._amount;
+};
+
+Squiggle.prototype.play = function() {
+  
+  if( this.playing ) return;
+
+  this.animate_in();
+
+};
+
+Squiggle.prototype.animate_in = function( ) {
+  
+  var self = this;
+
+  this.playing = true;
+  this._entering = true;
+  this._state = 0.0;
+
+  var tween = Tween({ state: this._state })
+    .to( { state: 1.0 } )
+    .duration( this.duration )
+    .ease( this.easing )
+    .update( function(o) {
+      self._state = o.state;
+    } )
+    .on( 'end', function(){
+      self._removeTween( this );
+      self.animate_out();
+    })
+
+  this._tweens.push( tween );
+};
+
+Squiggle.prototype.animate_out = function() {
+
+  var self = this;
+  this._entering = false;
+  this._state = 0.0;
+  
+  var tween = Tween({ state: this._state })
+    .to( { state: 1.0 } )
+    .duration( this.duration )
+    .ease( this.easing )
+    .update( function(o) {
+      self._state = o.state;
+    } )
+    .on( 'end', function(){
+      self._removeTween( this );
+      self.animate_end();
+    })
+
+  this._tweens.push( tween );
+
+};
+
+Squiggle.prototype.animate_end = function() {
+  
+  this.playing = false;
+  this.reset();
+
+};
+
+
+Squiggle.prototype.initialize = function( ) {
+
+  if ( this.playing ) return;
+  
+  this._points = new Array( this._amount );
+  this.reset();
+
+};
+
+
+Squiggle.prototype.reset = function() {
+  
+  if ( this.playing ) return;
+
+  for ( var i = 0; i < this._amount; i += 1 ) {
+    this._points[i] = this._getPointOnLine( i / this._amount );
+  }
+};
+
+
+Squiggle.prototype.render = function() {
+  
+  if ( !this.playing ) return;
+  
+  this._app.lineWidth = this._app.height / 60;
+  this._app.strokeStyle = this.pigment.toString();
+  this._app.lineCap = 'round';
+  this._app.lineJoin = 'round';
+  // noFill
+  this._app.fillStyle = 'rgba(0, 0, 0, 0)';
+
+  this._app.beginPath();
+
+  if ( this._entering ) {
+
+    for ( var i = 0; i < this._amount; i += 1 ) {
+
+      var pct = i / this._amount;
+
+      if ( pct >= this._state ) continue;
+
+      var p = this._points[i];
+      if ( 0 === i ) {
+        this._app.moveTo( p.x, p.y );
+      } else {
+        this._app.lineTo( p.x, p.y );
+      }
+    }
+  } else {
+    var l = this._getPointOnLine( 1.0 );
+    this._app.moveTo( l.x, l.y );
+    for ( var i = this._amount - 1; i >= 0; i-- ) {
+      var pct = i / this._amount;
+      if ( pct <= this._state ) continue;
+      var p = this._points[i];
+      this._app.lineTo( p.x, p.y );
+    }
+    var t = this._getPointOnLine( this._state );
+    this._app.lineTo( t.x, t.y );
+  }
+
+  //this._app.closePath();
+  this._app.stroke();
+
+};
+
+Squiggle.prototype._getPointOnLine = function( pct ) {
+
+  var halfDistance = this._distance / 2
+    , theta = pct * this._revolutions * TWO_PI
+    , up = this._angle - HALF_PI
+    , x = this._origin.x - halfDistance * cos( this._angle )
+    , y = this._origin.y - halfDistance * sin( this._angle );
+
+  x += pct * this._distance * cos( this._angle );
+  x += cos( up ) * cos( theta ) * this._amplitude;
+
+  y += pct * this._distance * sin( this._angle );
+  y += sin( up ) * sin( theta + up ) * this._amplitude;
+
+  return new Vector( x, y );
+};
+
+});
+require.register("utils/index.js", function(exports, require, module){
+exports.mod = function( v, l ) {
+
+  while ( v < 0 ) {
+    v += l;
+  }
+  return v % l;
+}
+
+exports.ease = function( cur, dest, ease) {
+
+  var diff = dest - cur;
+  if ( diff < ease ) {
+    cur = dest;
+  } else {
+    cur += diff * ease;
+  }
+  return cur;
+
+}
+
+
+});
+require.register("palette/index.js", function(exports, require, module){
+var Color = require( 'color' ).RGBA
+  , inherit = require( 'inherit' )
+  , statics = require( './statics' )
+  , ease = require( 'utils' ).ease
+
+module.exports = Palette;
+
+function Palette(){
+
+  this._amount = 7;
+
+  this.source = this._colors[0];
+  this.current = new Array(this._amount);
+  this.destination = this._colors[0]
+
+  for (var i = 0; i < this._amount; i++) {
+    this.current[i] = new Color(0, 0, 0, 1);
+  }
+  
+  this._easing = 0.125;
+  this._state = 0.0;
+  this._dest = 1.0;
+  this._index = 0;
+  this._assigned = false;
+
+}
+
+Palette.Color = PaletteColor;
+inherit( PaletteColor, Color );
+
+Palette.prototype.next = function() {
+  if ( !this._assigned ) return;
+  
+  this._index = ( this._index + 1 == this._colors.length ) ? 0 : this._index + 1
+  this.destination = this._colors[this._index];
+  this.reset()
+};
+
+Palette.prototype.getColor = function( type ) {
+  return this.current[type];
+};
+
+Palette.prototype.reset = function() {
+  this._state = 0.0;
+  this._assigned = false;
+};
+
+/**
+ * Updates the tweening of the colors
+ */
+
+Palette.prototype.update = function( ) {
+  if ( this._state >= 1.0 ) {
+    // At a standstill
+    this._assign();
+  } else {
+    this._state = ease( this._state, this._dest, this._easing );
+    for ( var i = 0; i < this._amount; i += 1 ) {
+
+      var s = this.source[i]
+        , c = this.current[i]
+        , d = this.destination[i];
+
+      c.r = parseInt( lerp( s.r, d.r, this._state ) );
+      c.g = parseInt( lerp( s.g, d.g, this._state ) );
+      c.b = parseInt( lerp( s.b, d.b, this._state ) );
+    }
+  }
+};
+
+Palette.prototype._assign = function( ) {
+  
+  if ( this.assigned ) return;
+  
+  this.source = this._colors[this._index];
+  this._assigned = true;
+};
+
+
+var absolute_white = Palette.prototype._absolute_white = new Palette.Color(255);
+var absolute_black = Palette.prototype._absolute_black = new Palette.Color(0);
+
+Palette.prototype._colors = [
+  [
+    new Palette.Color(181),
+    new Palette.Color(141, 164, 170),
+    new Palette.Color(227, 79, 12),
+    new Palette.Color(163, 141, 116),
+    new Palette.Color(255, 197, 215),
+    absolute_white,
+    absolute_black
+  ],
+  [
+    new Palette.Color(57, 109, 193),
+    new Palette.Color(186, 60, 223),
+    new Palette.Color(213, 255, 93),
+    new Palette.Color(213, 160, 255),
+    new Palette.Color(36, 221, 165),
+    new Palette.Color(215, 236, 255),
+    absolute_black
+  ],
+  [
+    new Palette.Color(217, 82, 31),
+    new Palette.Color(143, 74, 45),
+    new Palette.Color(255, 108, 87),
+    new Palette.Color(255, 126, 138),
+    new Palette.Color(227, 190, 141),
+    absolute_white,
+    absolute_black
+  ],
+  [
+    new Palette.Color(255, 244, 211),
+    new Palette.Color(207, 145, 79),
+    new Palette.Color(38, 83, 122),
+    new Palette.Color(178, 87, 53),
+    new Palette.Color(235, 192, 92),
+    new Palette.Color(226, 82, 87),
+    absolute_black
+  ],
+  [
+    new Palette.Color(191, 178, 138),
+    new Palette.Color(115, 44, 3),
+    new Palette.Color(89, 81, 57),
+    new Palette.Color(217, 210, 176),
+    new Palette.Color(242, 239, 220),
+    new Palette.Color(22, 33, 44),
+    absolute_white
+  ],
+  [
+    absolute_white,
+    new Palette.Color(151, 41, 164),
+    new Palette.Color(1, 120, 186),
+    new Palette.Color(255, 255, 0),
+    new Palette.Color(255, 51, 148),
+    absolute_black,
+    absolute_black
+  ],
+  [
+    new Palette.Color(39, 6, 54),
+    new Palette.Color(69, 26, 87),
+    new Palette.Color(252, 25, 246),
+    new Palette.Color(52, 255, 253),
+    new Palette.Color(133, 102, 193),
+    new Palette.Color(253, 228, 252),
+    absolute_white
+  ]
+];
+
+
+for (var key in statics){
+  Palette[key] = statics[key];
+}
+
+function PaletteColor( r, g, b, a ) {
+  if (1 === arguments.length) {
+    Color.apply(this, [r, r, r, 1]);
+  } else if ( 3 === arguments.length ){
+    Color.apply(this, [r, g, b, 1]);
+  } else {
+    Color.apply(this, arguments);
+  }
+}
+
+
+
+
+
+});
+require.register("palette/statics.js", function(exports, require, module){
+module.exports = {
+    MEGURO: 0
+  , MIRO: 1
+  , KANDINSKY: 2
+  , FISCHINGER: 3
+  , SHANGHAI: 4
+  
+  , BACKGROUND: 0
+  , MIDDLE: 1
+  , FOREGROUND: 2
+  , ACCENT: 3
+  , HIGHLIGHT: 4
+  , WHITE: 5
+  , BLACK: 6
+}
+
+});
+require.register("router/index.js", function(exports, require, module){
+module.exports = Router;
+
+function Router(app, depth, debug){
+
+  this.debug = debug || false;
+  this.depth = depth || 128;
+  
+  this._app = app;
+  this._damp = 0.0125;
+  this._raw_frequencies = [];
+  this._smooth_frequencies = [];
+  this._max_amplitude = 0.0;
+  this.initialize();
+}
+
+Router.prototype.initialize = function() {
+  
+};
+
+Router.prototype.getBand = function(index, smooth_) {
+  return 1.0;
+};
+
+Router.prototype.getDepth = function() {
+  return this.depth;
+};
+
+Router.prototype.getDamp = function() {
+  return this._damp;
+};
+
+Router.prototype.setDebug = function(debug) {
+  this.debug = debug;
+};
+
+Router.prototype.setDepth = function(depth) {
+  this.depth = depth;
+  this.initialize();
+};
+
+Router.prototype.setDamp = function(damp) {
+  this._damp = damp;
+};
+
+Router.prototype.isHat = function() {
+  return true;
+};
+
+Router.prototype.isKick = function() {
+  return true;
+};
+
+Router.prototype.isOnset = function() {
+  return true;
+};
+
+Router.prototype.isRange = function(low, high, threshold) {
+  return true;
+};
+
+Router.prototype.isSnare = function() {
+  return false;
+};
+
+Router.prototype.setSensitivity = function(sensitivity) {
+  //
+};
+
+
+Router.prototype.update = function() {
+  
+};
+
+Router.prototype.render = function() {
+};
+
+Router.prototype.stop = function() {
+};
+
+Router.prototype._ease = function(current, target, increment) {
+  var difference = target - current;
+  if (Math.abs(difference) <= increment) {
+    current = target;
+  } else {
+    current += difference * increment;
+  }
+  return current;
+};
+
+});
+require.register("piston/index.js", function(exports, require, module){
+var inherit = require( 'inherit' )
+  , Tween = require( 'tween' )
+  , Neuron = require( 'neuron' );
+
+module.exports = Piston;
+
+function Piston( app, duration ){
+
+  Neuron.apply(this, arguments);
+  this.duration = duration;
+  this.initialize();
+
+}
+
+inherit( Piston, Neuron );
+
+Piston.prototype.initialize = function(x, y, w, h) {
+
+  if (this.playing) return;
+  
+  var size = this.getStageSize();
+
+  if (4 === arguments.length) {
+
+    this._w = w;
+    this._h = h;
+    this._x = x;
+    this._y = y;
+
+  } else {
+
+    this._w = size.width / 2;
+    this._h = size.height / 6;
+    this._x = (size.width - this._w) / 2;
+    this._y = (size.height - this._h) /2;
+
+  }
+  
+  this.w = 0;
+  this.h = this._h;
+  this.x = this._x;
+  this.y = this._y;
+};
+
+Piston.prototype.render = function() {
+
+  if (!this.playing) return;
+
+  // ctx.noStroke();
+  this._app.fillStyle = this.pigment.toString();
+  this._app.fillRect(this.x, this.y, this.w, this.h);
+
+};
+
+Piston.prototype.play = function() {
+  if (this.playing) return;
+  this._animate_in();
+};
+
+Piston.prototype._animate_in = function() {
+
+  this.playing = true;
+  this._reset();
+
+  var self = this
+    , from = { w: this.w }
+    , to = { w: this._w }
+    , tween = Tween( from )
+      .to( to )
+      .ease( this.easing )
+      .duration( this.duration )
+      .update( function( o ){
+        self.w = o.w;
+      } )
+      .on( 'end', function(){
+        self._animate_out();
+        self._removeTween( this )
+      } );
+  this._tweens.push( tween );
+};
+
+Piston.prototype._animate_out = function() {
+  var self = this;
+
+  var from = { x: this.x, w: this.w }
+    , to = { x: this._w + this._x, w: 0 }
+    , tween = Tween( from )
+      .to( to )
+      .ease( this.easing )
+      .duration( this.duration )
+      .update( function( o ){
+        self.x = o.x;
+        self.w = o.w;
+      } )
+      .on( 'end', function(){
+        self._animate_end();
+        self._removeTween( this );
+      } )
+  this._tweens.push( tween );
+};
+
+Piston.prototype._animate_end = function() {
+  this._reset();
+  this.playing = false;
+};
+
+Piston.prototype._reset = function() {
+  this.w = 0;
+  this.x = this._x;
+};
+
+});
+require.register("engine/index.js", function(exports, require, module){
+var Piston = require('piston');
+
+module.exports = Engine;
+
+function Engine(router, x, y, width, height){
+  
+  this._pistons = [];
+  this._amount = 8;
+  this._pigment = '#000';
+  this._router = router;
+  this._app = router._app;
+
+  this._ox = x;
+  this._oy = y;
+
+  this.w = width;
+  this.h = height;
+  this.x = x- (this.w / 2);
+  this.y = y - (this.h / 2);
+
+  this.gutter = 0;
+  this.duration = 0.15 * 1000;
+  this.delay = 0;
+  this.initialize();
+}
+
+Engine.prototype.isPlaying = function() {
+
+  var result = false;
+  for (var i = 0; i < this._amount; i += 1) {
+    var piston = this._pistons[i];
+    if ( piston.playing ) {
+      result = true;
+      break;
+    }
+  }
+  return result;
+};
+
+Engine.prototype.setColor = function(color) {
+  this._pigment = color;
+};
+
+Engine.prototype.setAmount = function(amount) {
+  this._amount = amount;
+};
+
+Engine.prototype.setDelay = function(delay) {
+  this.delay = delay;
+};
+
+Engine.prototype.setDimensions = function(width, height) {
+  this.w = width;
+  this.h = height;
+  this.x = this._ox - (width / 2);
+  this.y = this._oy - (height / 2);
+};
+
+Engine.prototype.initialize = function() {
+  if (this._amount <= 1) {
+    this.gutter = 0;
+  } else {
+    this.gutter = this.h / (this._amount * 4);
+  }
+
+  var offsetH = (this.h / this._amount) - this.gutter;
+
+  for (var i = 0; i < this._amount; i += 1) {
+    
+    var piston = this._pistons[i] = new Piston(this._app, this.duration)
+      , offsetY = (i / this._amount) * this.h + this.y + this.gutter / 2;
+
+    piston.initialize(this.x, offsetY, this.w, offsetH);
+    piston.setDelay(this.delay * i);
+    piston.setColor(this._pigment);
+
+  }
+};
+
+Engine.prototype.play = function() {
+  for ( var i = 0; i < this._amount; i += 1 ) {
+    this._pistons[i].play();
+  }
+};
+
+Engine.prototype.render = function() {
+  for ( var i = 0; i < this._amount; i += 1 ) {
+    this._pistons[i].render();
+  }
+};
+
+Engine.prototype.update = function() {
+  for ( var i = 0; i < this._amount; i += 1 ) {
+    this._pistons[i].update();
+  }
+};
+
+});
+require.register("perform/index.js", function(exports, require, module){
+
+/**
+ * Neuronal Synchrony
+ * 
+ * A collection of two dimensional animations
+ * that are triggered by sound.
+ * 
+ * It is dependent on minim and Ani Processing
+ * libraries, which can be found on the
+ * Processing website.
+ *
+ * This application is meant to be used for live
+ * performances and subtly takes in the microphone
+ * or current line-in's frequencies. Currently,
+ * the main interaction is through keyboard input,
+ * although I'd like to change this to Monome.
+ *
+ * @jonobr1
+ *
+ * JS fork by @mnmly
+ */
+
+var Sketch = require( 'sketch' )
+  , autoscale = require('autoscale-canvas')
+  , Palette = require( 'palette' )
+  , Router = require( 'router' )
+  , Record = require( 'record' )
+  , Suspension = require( 'suspension' )
+  , Moon = require( 'moon' )
+  , Prism = require( 'prism' )
+  , Clay = require( 'clay' )
+  , Engine = require( 'engine' )
+  , Squiggle = require( 'squiggle' )
+  , Pinwheel = require( 'pinwheel' )
+  , Debug = require( 'debug' )
+  , debug = Debug('neuronal:perform')
+  
+
+Debug.enable('*')
+
+module.exports = Perform;
+
+function Perform(){
+  
+  var self = this
+    , firstFrame = false
+    , setup = this.setup.bind( this )
+    , update = this.update.bind( this )
+    , draw = this.draw.bind( this )
+    , keyup = this.keyup.bind( this )
+    , touchend = this.touchend.bind( this )
+    , drawLines = false
+    , params = {
+        setup: setup
+      , update: update
+      , draw: draw
+      , keyup: keyup
+      , touchend: touchend
+      // , width: width
+      // , height: height
+    }
+
+  this.app = Sketch.create( params );
+  autoscale( document.querySelector('canvas') );
+
+  this.app.frameCount = 0;
+  var width = this.app.width
+    , height = this.app.height;
+  
+  // this.record = new Record();
+  
+  this.router = new Router( this.app, 128, false );
+
+  this.palette = new Palette();
+  
+  this.bg = this.palette.getColor( Palette.BACKGROUND );
+  
+  this.suspension = new Suspension( this.app, 500 );
+  this.suspension.setColor( this.palette.getColor( Palette.WHITE ) );
+  
+  this.suspension1 = new Suspension( this.app, 1000 );
+  this.suspension1.setColor( this.palette.getColor( Palette.WHITE ) );
+
+  this.suspension2 = new Suspension( this.app, 750 );
+  this.suspension2.setColor( this.palette.getColor( Palette.WHITE ) );
+
+  this.engine = new Engine( this.router, width / 2, height / 2, width * 0.75, height / 2 );
+  this.engine.setColor( this.palette.getColor( Palette.WHITE ) );
+  this.engine.initialize();
+  
+  this.engineReverse = new Engine( this.router, width / 2, height / 2, -width * 0.75, height / 2 );
+  this.engineReverse.setColor( this.palette.getColor( Palette.WHITE ) );
+  this.engineReverse.initialize();
+  
+  this.moon = new Moon( this.app, 250 );
+  this.moon.setColor( this.palette.getColor( Palette.FOREGROUND ) );
+
+  this.prism = new Prism( this.app, 500 );
+  this.prism.setColor( this.palette.getColor( Palette.BLACK ) );
+  
+  this.prism1 = new Prism( this.app, 500 );
+  this.prism1.setColor( this.palette.getColor( Palette.BLACK ) );
+  
+  this.clay = new Clay( this.app, 500 );
+  this.clay.setColor( this.palette.getColor( Palette.MIDDLE) );
+  
+  this.pinwheel = new Pinwheel( this.app, 1000);
+  this.pinwheel.setColor( this.palette.getColor( Palette.ACCENT ) );
+  
+  this.squiggle = new Squiggle( this.app, 500 );
+  this.squiggle.setColor( this.palette.getColor( Palette.HIGHLIGHT ) );
+
+  window.addEventListener('devicemotion', function (e) {
+    x1 = e.accelerationIncludingGravity.x;
+    y1 = e.accelerationIncludingGravity.y;
+    z1 = e.accelerationIncludingGravity.z;
+    Math.abs( e.acceleration.x ) > 3 && self.palette.next();
+  }, false);
+}
+
+
+Perform.prototype.setup = function() {
+  debug( 'setting up' );
+
+}
+
+Perform.prototype.letters = [ [ ['E'], ['R'], ['M'] ],
+                              [ ['P'], ['L'], ['S'] ],
+                              [ ['D'], ['A'], ['C'] ],
+                              [ ['O'], ['W'], ['Y'] ] ];
+
+Perform.prototype.touchend = function( e ) {
+
+  var width = this.app.width
+    , height = this.app.height;
+
+  for ( var i = 0; i < e.changedTouches.length; i += 1 ) {
+    var t = e.changedTouches[i]
+      , col = floor( t.clientX / width * 3 )
+      , row = floor( t.clientY / height * 4 )
+    this.keyup( this.letters[row][col] );
+  }
+
+};
+
+Perform.prototype.keyup = function( e ) {
+
+  var key = e.keyCode ? String.fromCharCode( e.keyCode ) : e
+    , width = this.app.width
+    , height = this.app.height;
+
+  debug( 'KEY PRESSED:', key );
+  
+  if ( !this.engineReverse.isPlaying() && key == 'e' || key == 'E' ) {
+
+    var amp = this.router.getBand( this.router.depth / 4, false );
+    this.engine.setAmount( map( amp, 0, 1, 1, 12 ) );
+    if ( this.randomize ) {
+      this.engine.setDimensions( random( width / 4, width), map(amp, 0, 1, height / 8, height) );
+    }
+    this.engine.initialize();
+    this.engine.play();
+  
+  } else if ( !this.engine.isPlaying() && key == 'r' || key == 'R' ) {
+
+    var amp = this.router.getBand( this.router.depth / 4, false );
+    this.engineReverse.setAmount( map( amp, 0, 1, 1, 12 ) );
+    if ( this.randomize ) {
+      this.engine.setDimensions( random( width / 4, width), map( amp, 0, 1, height / 8, height ));
+    }
+    this.engineReverse.initialize();
+    this.engineReverse.play();
+
+  } else if ( key == 'm' || key == 'M' ) {
+    
+    if ( this.randomize ) {
+      this.moon.setAngle( random( TWO_PI ) );
+      this.moon.initialize();
+    } else {
+      this.moon.setAngle( 0 );
+      this.moon.initialize();
+    }
+    this.moon.play();
+  
+  } else if (key == 'p' || key == 'P') {
+
+    var amp = this.router.getBand( this.router.depth - this.router.depth / 4, false );
+    this.prism.setAmount( floor( map( amp, 0, 1, 3, 12) ) );
+    this.prism.play();
+  
+  } else if (key == 'l' || key == 'L') {
+
+    var amp = this.router.getBand( this.router.depth - this.router.depth / 4, false );
+    this.prism1.setAmount( floor( map( amp, 0, 1, 3, 12) ) );
+    this.prism1.play();
+  
+  } else if (key == 's' || key == 'S') {
+
+    var amp = this.router.getBand( this.router.depth - this.router.depth / 10, false );
+    if ( this.randomize ) {
+      this.suspension.setAmount( parseInt( map( amp, 0, 1, 8, 32 ), 10 ) );
+    }
+    this.suspension.setTheta( random( TWO_PI ) );
+    this.suspension.initialize();
+    this.suspension.play();
+  
+  } else if (key == 'd' || key == 'D') {
+
+    var amp = this.router.getBand( this.router.depth - this.router.depth / 10, false );
+    if ( this.randomize ) {
+      this.suspension1.setAmount( map( amp, 0, 1, 8, 32 ) );
+    }
+    this.suspension1.setTheta( random( TWO_PI ) );
+    this.suspension1.initialize();
+    this.suspension1.play();
+  
+  } else if (key == 'a' || key == 'A') {
+    var amp = this.router.getBand( this.router.depth - this.router.depth / 10, false);
+    if ( this.randomize ) {
+      this.suspension2.setAmount( map( amp, 0, 1, 8, 32 ) );
+    }
+    this.suspension2.setTheta( random( TWO_PI ) );
+    this.suspension2.initialize();
+    this.suspension2.play();
+  
+  } else if ( key =='c' || key == 'C' ) {
+
+    this.clay.setAmount( floor( random( 8, 16 ) ) );
+    var x, y, pos = random( 8 );
+    if ( pos > 7 ) {
+      // north
+      x = width / 2;
+      y = 0;
+    } else if ( pos > 6 ) {
+      // north-west
+      x = 0;
+      y = 0;
+    } else if ( pos > 5 ) {
+      // west
+      x = 0;
+      y = height / 2;
+    } else if (pos > 4) {
+      // south-west
+      x = 0;
+      y = height;
+    } else if (pos > 3) {
+      // south
+      x = width / 2;
+      y = height;
+    }  else if (pos > 2) {
+      // south-east
+      x = width;
+      y = height;
+    } else if (pos > 1) {
+      // east
+      x = width;
+      y = height / 2;
+    } else {
+      x = width;
+      y = 0;
+    }
+    this.clay.setOrigin( x, y );
+    this.clay.setImpact( random( width ), random( height ) );
+    this.clay.initialize();
+    this.clay.play();
+  
+  } else if (key == 'o' || key == 'O') {
+    var amp = this.router.getBand( this.router.depth / 2, false );
+    this.pinwheel.setAmount( map( amp, 0, 1, 4, 10 ) );
+    if ( this.randomize ) {
+      var startAngle = random( TWO_PI )
+        , endAngle = random( startAngle, TWO_PI );
+      this.pinwheel.setAngles( startAngle, endAngle );
+    } else {
+      this.pinwheel.setAngles( 0, TWO_PI );
+    }
+    this.pinwheel.setDrift( random( TWO_PI ) );
+    this.pinwheel.initialize();
+    this.pinwheel.play();
+  
+  } else if (key == 'w' || key == 'W') {
+    if ( this.randomize ) {
+      this.squiggle.setAngle( random( TWO_PI ) );
+    }
+    this.squiggle.setRevolutions( random( 0.25, 6 ) );
+    this.squiggle.setAmplitude( random( this.app.height / 8, this.app.height / 3 ) );
+    this.squiggle.setDistance( random( this.app.width / 8, this.app.width / 2 ) );
+    this.squiggle.initialize();
+    this.squiggle.play();
+
+  } else if ( !isNaN( key ) ) {
+    //      palette.choose((int) key);
+    this.palette.next();
+  }
+  else if (key == 'y' || key == 'Y') {
+    this.randomize = !this.randomize;
+  }
+  // this.record.add( key );
+};
+
+Perform.prototype.draw = function(){
+  
+  if ( this.app ){
+
+    this.app.fillStyle = this.bg.toString();
+    this.app.fillRect(0, 0, this.app.width, this.app.height);
+    
+    if ( this.drawLines ){
+      this.app.strokeStyle = this.palette.getColor( 3 ).toString();
+      
+      for ( var i = 1; i <= 3; i += 1 ) {
+        this.app.moveTo( this.app.width / 3 * i, 0 )
+        this.app.lineTo( this.app.width / 3 * i, this.app.height );
+      }
+      
+      for ( var i = 1; i <= 4; i += 1 ) {
+        this.app.moveTo( 0, this.app.height / 4 * i )
+        this.app.lineTo( this.app.width, this.app.height / 4 * i)
+      }
+
+      this.app.stroke();
+    }
+
+    this.clay.render();  
+    this.prism.render();
+    this.prism1.render();
+
+    this.engineReverse.render();
+    this.moon.render();
+    this.pinwheel.render();
+
+    this.engine.render();
+    this.squiggle.render();
+    this.suspension.render();
+    this.suspension1.render();
+    this.suspension2.render();
+  }
+}
+
+Perform.prototype.update = function() {
+
+  if (this.app){
+
+    this.app.frameCount++;
+    
+    this.router.update();
+    this.palette.update();
+
+    this.clay.update();  
+    this.prism.update();
+    this.prism1.update();
+
+    this.engineReverse.update();
+    this.moon.update();
+    this.pinwheel.update();
+
+    this.engine.update();
+    this.squiggle.update();
+    this.suspension.update();
+    this.suspension1.update();
+    this.suspension2.update();
+
+  }
+
+};
+
+
+});
 require.alias("component-vector/index.js", "neuronal-synchrony/deps/vector/index.js");
 require.alias("component-vector/index.js", "vector/index.js");
 
